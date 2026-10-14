@@ -190,7 +190,7 @@ fit_cov <- fit_pp(
 c(coordinates = fit$aic, covariates = fit_cov$aic)
 ```
 
-The model with the true coordinate terms has the lower AIC, as expected.
+The model with the true coordinate terms has the lowest AIC, as expected.
 
 Because the fit is a GAM, parametric and semiparametric terms can be freely
 combined; here the dependence on `y` is left unspecified and estimated as a
