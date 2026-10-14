@@ -3418,6 +3418,7 @@ plot.pp_envelope <- function(
     # GET returns a ggplot object, which must be printed explicitly inside an
     # S3 method; otherwise nothing is drawn.
     if (inherits(plotted, "ggplot")) {
+      plotted <- plotted + ggplot2::labs(x = "Spatial lag r", y = "K(r)")
       print(plotted)
     }
 

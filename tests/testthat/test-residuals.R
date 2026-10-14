@@ -39,3 +39,13 @@ test_that("cell expectations add up to the integrated fitted intensity", {
   res <- residuals_pp(obj$fit, type = "raw", nc = 20)
   expect_equal(sum(res$data$.pp_expected), analytic, tolerance = 2e-3)
 })
+
+test_that("residual-profile envelopes are drawn once per variable", {
+  x <- simulate_pp(unit_square(), expected_n = 80, seed = 27)
+  fit <- fit_pp(x, ~ x + y, nc = 6)
+  diagnostic <- diagnose_first_order_pp(fit, nsim = 19, alpha = 0.1, nc = 5,
+                                        seed = 28, verbose = FALSE)
+
+  expect_identical(count_pdf_pages(plot(diagnostic)), 2L)
+  expect_identical(count_pdf_pages(plot(diagnostic, variable = "y")), 1L)
+})

@@ -112,8 +112,8 @@ test_that("fitted ETAS probabilities and intensities are coherent", {
   skip_on_cran()
   sim <- simulate_reference_etas()
   fit <- suppressWarnings(fit_etas_pp(
-    sim$catalog, magn.threshold = 2.5, formula.bg = ~1, ndeclust = 2,
-    iterlim = 30, verbose = FALSE, trace = FALSE, verbose.convergence = FALSE
+    sim$catalog, formula.bg = ~1,
+    control = etas_control(ndeclust = 2, iterlim = 30)
   ))
 
   expect_equal(fit$background_probability + fit$triggered_probability,
@@ -136,13 +136,80 @@ test_that("ETAS fitting recovers the simulation parameters", {
     n_support_obs = 50, mult_support = 1, trig_lp_coefs = c(m_rel = 0.3),
     seed = 19
   )
-  fit <- suppressWarnings(fit_etas_pp(
-    sim$catalog, magn.threshold = 2.5, formula.bg = ~1, ndeclust = 5,
-    iterlim = 100, verbose = FALSE, trace = FALSE, verbose.convergence = FALSE
-  ))
+  fit <- fit_etas_pp(sim$catalog, formula.bg = ~1,
+                     control = etas_control(iterlim = 100))
 
   expect_true(fit$convergence$converged)
   shown <- c("mu", "c", "p", "d", "q")
   z <- (fit$parameters[shown] - truth[shown]) / fit$standard_errors[shown]
   expect_true(all(abs(z) < 4))
+})
+
+test_that("the background of the ETAS model accepts covariate terms", {
+  skip_on_cran()
+  sim <- simulate_etas_pp(
+    params = c(mu = 0.5, k0 = 1.5e-5, c = 0.05, p = 1.2, gamma = 0, d = 0.001, q = 2),
+    m0 = 2.5, b = 1, tmin = 0, t.lag = 500,
+    long.range = c(0, 1), lat.range = c(0, 1), longlat.to.km = FALSE,
+    n_support_obs = 50, mult_support = 1,
+    bg_lp_type = "linear", bg_lp_coefs = c(x_std = 0.6, y_std = 0),
+    trig_lp_coefs = c(m_rel = 0.3), seed = 19
+  )
+  fit <- fit_etas_pp(sim$catalog, formula.bg = ~ x)
+
+  table <- summary(fit$background_fit$gam)$p.table
+  expect_lt(abs(table["x", "Estimate"] - 0.6), 4 * table["x", "Std. Error"])
+  expect_true(all(is.finite(fit$standard_errors)))
+})
+
+test_that("fit_etas_pp handles start, fixed and the previous interface", {
+  skip_on_cran()
+  sim <- simulate_etas_pp(
+    params = c(mu = 0.5, k0 = 1.5e-5, c = 0.05, p = 1.2, gamma = 0, d = 0.001, q = 2),
+    m0 = 2.5, b = 1, tmin = 0, t.lag = 300,
+    long.range = c(0, 1), lat.range = c(0, 1), longlat.to.km = FALSE,
+    n_support_obs = 50, mult_support = 1, trig_lp_coefs = c(m_rel = 0.3),
+    seed = 23
+  )
+
+  fit <- fit_etas_pp(sim$catalog, start = list(p = 1.2), fixed = c("gamma", "p"),
+                     control = list(ndeclust = 2))
+  expect_identical(unname(fit$parameters["p"]), 1.2)
+  expect_identical(unname(fit$params.ind), c(TRUE, TRUE, TRUE, FALSE, FALSE, TRUE, TRUE))
+
+  expect_error(fit_etas_pp(sim$catalog, bogus = 1), "Unknown argument")
+  expect_error(fit_etas_pp(sim$catalog, start = list(bogus = 1)), "Unknown name")
+  expect_error(fit_etas_pp(sim$catalog, background = list(bogus = 1)), "Unknown `background`")
+
+  expect_warning(
+    old <- fit_etas_pp(
+      sim$catalog, p = 1.2,
+      params.ind = c(TRUE, TRUE, TRUE, FALSE, FALSE, TRUE, TRUE),
+      ndeclust = 2, verbose = FALSE, trace = FALSE, hdef = c(1, 1)
+    ),
+    "previous interface"
+  )
+  expect_equal(old$parameters, fit$parameters)
+})
+
+test_that("a catalogue without triggering gives a warning about standard errors", {
+  skip_on_cran()
+  set.seed(123)
+  n <- 35
+  w <- pp_window(
+    lower = c(x = 0, y = 0, time = 0),
+    upper = c(x = 1, y = 1, time = 100),
+    axis_roles = c(x = "space", y = "space", time = "time")
+  )
+  pattern <- pp_pattern(
+    data.frame(x = runif(n), y = runif(n), time = sort(runif(n, 0, 100)),
+               z = runif(n, 1, 20), magn1 = 2.5 + rexp(n, 2)),
+    coords = c("x", "y", "time"), marks = c("z", "magn1"), window = w
+  )
+  catalog <- etas_catalog(pattern, longlat.to.km = FALSE)
+
+  expect_warning(
+    fit_etas_pp(catalog, control = list(ndeclust = 2, iterlim = 20)),
+    "could not be computed"
+  )
 })

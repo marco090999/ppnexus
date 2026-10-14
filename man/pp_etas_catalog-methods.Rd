@@ -57,13 +57,13 @@ summary(catalog)
 \seealso{
 \code{\link[=etas_catalog]{etas_catalog()}} and \code{\link[=fit_etas_pp]{fit_etas_pp()}}.
 
-Other ETAS modelling: 
-\code{\link{as_etas_catalog}()},
-\code{\link{decluster_etas_pp}()},
-\code{\link{etas_catalog}()},
-\code{\link{fit_etas_pp}()},
-\code{\link{print.pp_etas_fit}()},
-\code{\link{print.pp_etas_simulation}()},
-\code{\link{simulate_etas_pp}()}
+Other ETAS modelling:
+\code{\link[=as_etas_catalog]{as_etas_catalog()}},
+\code{\link[=decluster_etas_pp]{decluster_etas_pp()}},
+\code{\link[=etas_catalog]{etas_catalog()}},
+\code{\link[=fit_etas_pp]{fit_etas_pp()}},
+\code{\link[=print.pp_etas_fit]{print.pp_etas_fit()}},
+\code{\link[=print.pp_etas_simulation]{print.pp_etas_simulation()}},
+\code{\link[=simulate_etas_pp]{simulate_etas_pp()}}
 }
 \concept{ETAS modelling}

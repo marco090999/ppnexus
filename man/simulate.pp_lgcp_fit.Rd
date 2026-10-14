@@ -94,8 +94,7 @@ fit <- fit_lgcp_pp(
   cov_model = "exponential",
   r = seq(0, 0.2, length.out = 8),
   nc = 6,
-  integration_n = 80,
-  seed = 11
+  control = lgcp_control(integration_n = 80)
 )
 
 x_new <- simulate(fit, nsim = 1, field_n = 6, seed = 12)

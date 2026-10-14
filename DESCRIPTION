@@ -31,10 +31,13 @@ Description: Tools for simulation, estimation, diagnostics, and exploratory
     epidemic-type aftershock sequence models with parametric Poisson
     background intensities.
 License: GPL (>= 2)
+URL: https://github.com/marco090999/ppnexus
+BugReports: https://github.com/marco090999/ppnexus/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Imports:
     GET,
+    ggplot2,
     graphics,
     grDevices,
     mgcv,
@@ -42,12 +45,9 @@ Imports:
     stats,
     utils
 Suggests:
-    ggplot2,
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.0.0
-URL: https://github.com/marco090999/ppnexus
-BugReports: https://github.com/marco090999/ppnexus/issues

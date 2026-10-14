@@ -1858,297 +1858,10 @@ if (
 
 # Main ETAS fit ---------------------------------------------------------------
 
-#' Fit an ETAS model with a parametric Poisson background
-#'
-#' Fits a spatial or temporal epidemic-type aftershock sequence model using the
-#' triggering parametrization implemented in `etasFLP`, while estimating the
-#' spatial background through the weighted Poisson point-process machinery of
-#' `ppnexus`.
-#'
-#' @description
-#' `fit_etas_pp()` alternates between maximum-likelihood estimation of the ETAS
-#' triggering component and, when requested, a weighted Poisson fit for the
-#' background component. The posterior probability that each event is a
-#' background event is used as its fractional weight in the next background
-#' update.
-#'
-#' @details
-#' For an event history \eqn{\mathcal{H}_t}, the fitted conditional intensity
-#' has the decomposition
-#'
-#' \deqn{\lambda(t, \mathbf{s} \mid \mathcal{H}_t)
-#' = \mu b(\mathbf{s};\boldsymbol{\beta})
-#' + \sum_{t_j<t} h(t-t_j, \mathbf{s}-\mathbf{s}_j,
-#' m_j;\boldsymbol{\theta}),}
-#'
-#' where \eqn{b(\mathbf{s};\boldsymbol{\beta})} is a normalized spatial
-#' background density and \eqn{h()} is the ETAS offspring contribution. The
-#' seven core ETAS parameters are `mu`, `k0`, `c`, `p`, `gamma`, `d`, and `q`.
-#' In the spatial model, `c` and `p` control temporal decay, `d` and `q` control
-#' spatial decay, `gamma` controls magnitude-dependent spatial scaling, and
-#' `k0` controls offspring productivity. Additional productivity effects enter
-#' through the linear predictor defined by `formula1`, `betacov`, and `offset`.
-#'
-#' The log likelihood is the standard conditional point-process likelihood,
-#'
-#' \deqn{\ell(\boldsymbol{\theta})
-#' = \sum_i \log\{\lambda(t_i,\mathbf{s}_i)\}
-#' - \int_T \int_W \lambda(t,\mathbf{s})\,d\mathbf{s}\,dt.}
-#'
-#' Triggering contributions are evaluated by the registered Fortran routine in
-#' `etasFLP`. Spatial triggering integrals are numerically approximated over the
-#' rectangular working region using `ntheta` angular directions.
-#'
-#' Unless `is.backconstant = TRUE`, the background model is fitted with
-#' [fit_pp()] on the two-dimensional working coordinates `x` and `y`. Its fitted
-#' ground intensity is normalized to integrate to one over the spatial window;
-#' the ETAS parameter `mu` then scales the background rate. During declustering,
-#' the eventwise posterior probabilities
-#'
-#' \deqn{\rho_i = \frac{\mu b(\mathbf{s}_i)}
-#' {\lambda(t_i,\mathbf{s}_i)}}
-#'
-#' are used as fractional event weights in the next Poisson background fit.
-#' Iteration stops when both the maximum change in posterior background
-#' probabilities and the maximum relative parameter change fall below their
-#' respective tolerances, or when `ndeclust` iterations have been completed.
-#'
-#' `onlytime = TRUE` fits the temporal special case: the background is constant,
-#' declustering is disabled, and `gamma`, `d`, and `q` are fixed to zero.
-#' `is.backconstant = TRUE` similarly disables alternating background updates
-#' and uses a uniform spatial density.
-#'
-#' Several arguments are retained to ease comparison with legacy
-#' `etasFLP::etasclass` interfaces. At present, `time.update = TRUE`,
-#' `flp = TRUE`, and non-`NULL` `cat.back` generate errors;
-#' `thinning = TRUE` generates a warning and is ignored. The arguments
-#' `magn.threshold.back`, `hdef`, `hvarx`, `hvary`, `m1`, `back.smooth`,
-#' `compsqm`, and `epsmax` are validated or stored for compatibility but do not
-#' alter the current parametric-background estimation algorithm.
-#'
-#' @param catalog A validated `"pp_etas_catalog"` object created by
-#'   [etas_catalog()] or [as_etas_catalog()].
-#' @param time.update Logical scalar retained for legacy compatibility. Only
-#'   `FALSE` is currently supported; `TRUE` produces an error.
-#' @param magn.threshold Finite numeric completeness threshold. Events with
-#'   magnitude below this value are removed before fitting, and the retained
-#'   magnitudes are centered internally relative to the threshold.
-#' @param magn.threshold.back Legacy background-magnitude threshold. It is
-#'   retained in the call and settings but does not affect the current
-#'   parametric Poisson background update.
-#' @param tmax Optional finite upper time limit on the original catalog scale.
-#'   It must lie within the original observation window. The default is the
-#'   upper temporal bound retained by `catalog`.
-#' @param long.range,lat.range Optional finite numeric vectors of length two
-#'   defining the spatial fitting rectangle on the original catalog scale.
-#'   They must lie within the original observation window. Defaults use the
-#'   complete spatial bounds of `catalog`.
-#' @param mu,k0,c,p,gamma,d,q Starting or fixed values for the seven ETAS
-#'   parameters. Parameters selected for estimation by `params.ind` must be
-#'   strictly above their lower bounds: `mu`, `k0`, `c`, `gamma`, and `d` above
-#'   zero, `p` above one, and `q` above one. `gamma` may be fixed at zero.
-#'   Internally generated starting values are used for omitted `mu`, `k0`, `c`,
-#'   and `d`.
-#' @param betacov Numeric vector of starting coefficients for the triggering
-#'   covariates represented by `formula1`. Its length must equal the number of
-#'   columns in the resulting triggering model matrix; otherwise zero starting
-#'   values are used.
-#' @param params.ind Logical vector of length seven, optionally named with
-#'   `mu`, `k0`, `c`, `p`, `gamma`, `d`, and `q`. `TRUE` selects a parameter for
-#'   estimation and `FALSE` keeps its supplied value fixed.
-#' @param formula1 Triggering formula in the legacy ETAS form. It must be one non-empty
-#'   character string and must use `time` as its left-hand side,
-#'   for example `"time ~ magnitude - 1"`. Variables on the right-hand side
-#'   must be available in the selected catalog. The resulting linear predictor
-#'   modifies offspring productivity.
-#' @param offset Numeric scalar or eventwise vector added to the triggering
-#'   linear predictor when an offset is not already supplied in `formula1`.
-#' @param hdef Legacy numeric bandwidth control retained in the fitted settings;
-#'   it does not modify the parametric Poisson background.
-#' @param wp Optional numeric vector of initial background probabilities, one
-#'   per selected event, with finite entries in `[0, 1]` and positive sum. The
-#'   default assigns unit initial weight to every event.
-#' @param hvarx,hvary Legacy spatial bandwidth vectors retained in the fitted
-#'   settings; they do not modify the current background fit.
-#' @param declustering Logical scalar. If `TRUE`, alternates ETAS estimation and
-#'   weighted background fitting. It is automatically set to `FALSE` for a
-#'   constant background or a temporal-only model.
-#' @param thinning Logical legacy control. If `TRUE`, a warning is issued and
-#'   the value is ignored because the implementation uses fractional posterior
-#'   weights rather than stochastic thinning.
-#' @param flp Logical legacy control. Only `FALSE` is supported; `TRUE` requests
-#'   an FLP kernel background and therefore produces an error.
-#' @param m1 Legacy magnitude control retained in the fitted settings; it does
-#'   not alter the current algorithm.
-#' @param ndeclust Positive integer giving the maximum number of alternating
-#'   ETAS/background iterations. It is reset to one when declustering is not
-#'   performed.
-#' @param n.iterweight Positive integer giving the number of weighted Poisson
-#'   background updates carried out within each declustering iteration.
-#' @param onlytime Logical scalar. If `TRUE`, fits the temporal ETAS special
-#'   case, fixes `gamma`, `d`, and `q` to zero, uses a constant background, and
-#'   disables declustering.
-#' @param is.backconstant Logical scalar. If `TRUE`, uses the uniform density
-#'   over the selected working spatial rectangle and disables declustering.
-#' @param description Optional character string stored in the fitted object for
-#'   user-defined identification or notes.
-#' @param cat.back Legacy external-background argument. It must be `NULL`; any
-#'   non-`NULL` value produces an error because the parametric background is
-#'   constructed internally.
-#' @param back.smooth Legacy smoothing control retained in the fitted settings;
-#'   it does not modify the current Poisson background fit.
-#' @param sectoday,longlat.to.km Optional logical scalars used only to verify
-#'   consistency with the conversions applied when `catalog` was created. If
-#'   supplied, each value must exactly match the corresponding catalog flag.
-#' @param usenlm Logical scalar. If `TRUE`, the transformed ETAS parameters are
-#'   optimized with [stats::nlm()]; otherwise [stats::optim()] is used.
-#' @param method Character string passed as the optimization method to
-#'   [stats::optim()] when `usenlm = FALSE`.
-#' @param compsqm Logical legacy standard-error control. It is validated and
-#'   retained in the settings but standard errors are currently obtained from
-#'   the Hessian independently of this flag.
-#' @param epsmax Positive numeric legacy convergence control. It is retained in
-#'   the convergence information but is not the active alternating-fit stopping
-#'   threshold; use `tol.rho` and `tol.par` for that purpose.
-#' @param iterlim Positive integer giving the maximum number of iterations for
-#'   [stats::nlm()] or [stats::optim()] during each ETAS maximum-likelihood step.
-#' @param ntheta Integer of at least four giving the number of angular directions
-#'   used to approximate the spatial triggering integral at the boundary of the
-#'   rectangular study region.
-#' @param formula.bg One-sided formula for the Poisson background model on the
-#'   working spatial coordinates `x` and `y`, for example `~ 1`, `~ x + y`, or
-#'   `~ s(x, y)`. Terms may also use supplied background covariates and marks
-#'   supported by [fit_pp()]. It is ignored for a constant or temporal-only
-#'   background.
-#' @param covariates.bg Optional external covariate object or named list of
-#'   covariate objects passed to [fit_pp()] for background estimation.
-#' @param covariate_methods.bg Optional character vector specifying how each
-#'   external background covariate is evaluated. It is passed to [fit_pp()].
-#' @param covariate_args.bg Optional named list of additional interpolation
-#'   arguments for the external background covariates, passed to [fit_pp()].
-#' @param continuous_marks.bg Optional named continuous-mark specifications
-#'   passed to [fit_pp()]. Joint marks are numerically marginalized before the
-#'   fitted background is used in the ETAS likelihood.
-#' @param categorical_marks.bg Optional character vector of categorical marks
-#'   included in the Poisson background. They are marginalized in the ground
-#'   background density and do not alter triggering or the ETAS mark model.
-#' @param categorical_levels.bg Optional named list defining the levels of the
-#'   categorical background marks, passed to [fit_pp()].
-#' @param q.bg Positive integer cubature order passed to [fit_pp()] for the
-#'   weighted Poisson background fit.
-#' @param dummy_layout.bg Either `"grid"` or `"random"`, selecting the dummy
-#'   point layout passed to [fit_pp()].
-#' @param nc.bg Optional cubature resolution passed to [fit_pp()]. It may be a
-#'   scalar or a vector aligned with the working spatial axes.
-#' @param max_tiles.bg Maximum allowed number of cubature tiles in the
-#'   background fit.
-#' @param max_quadrature_points.bg Maximum allowed total number of cubature
-#'   points in the background fit.
-#' @param max_mark_combinations.bg Maximum number of categorical mark-level
-#'   combinations allowed in the background cubature.
-#' @param seed.bg Optional integer random seed used when the background
-#'   cubature employs a random dummy layout.
-#' @param gam_args.bg Named list of additional arguments passed to [mgcv::gam()]
-#'   by [fit_pp()] when fitting the Poisson background. The default uses
-#'   `method = "REML"`.
-#' @param mark_n.bg Optional numerical integration resolution used by
-#'   [predict_pp_fit()] when joint continuous marks are marginalized from the
-#'   fitted background to obtain its ground spatial density.
-#' @param min.declust.iter Positive integer giving the minimum number of
-#'   alternating iterations completed before convergence can stop the fit.
-#' @param tol.rho Positive convergence tolerance for the maximum absolute change
-#'   in eventwise posterior background probabilities.
-#' @param tol.par Positive convergence tolerance for the maximum relative change
-#'   in the complete vector of estimated ETAS and triggering coefficients.
-#' @param stop.on.increasing.AIC Logical scalar. If `TRUE`, alternating
-#'   estimation stops when the working post-background AIC increases relative
-#'   to the preceding iteration.
-#' @param verbose.convergence Logical scalar controlling messages about
-#'   convergence measures and stopping decisions.
-#' @param verbose Logical scalar controlling higher-level progress messages for
-#'   ETAS and background updates.
-#' @param trace Logical scalar controlling the low-level optimization trace.
-#'
-#' @return An object of class `"pp_etas_fit"`. Important components include:
-#'
-#' - `parameters`, `standard_errors`, and `predictor`: final ETAS and triggering
-#'   coefficient estimates;
-#' - `background_fit`: the final weighted `pp_fit` object, or `NULL` for a
-#'   constant or temporal-only background;
-#' - `background_density`, `triggering_intensity`, and `total_intensity`:
-#'   eventwise fitted components;
-#' - `background_probability` and `triggered_probability`: eventwise posterior
-#'   declustering probabilities;
-#' - `loglik`, `integral`, and `trigger_integral`: likelihood components;
-#' - `history`: parameter, standard-error, probability, AIC, and convergence
-#'   histories across alternating iterations;
-#' - `convergence`, `optimisation`, and `settings`: algorithm and model metadata;
-#' - `catalog`, `selected_catalog`, and `cat`: retained input and selected event
-#'   data.
-#'
-#' @examples
-#' set.seed(123)
-#' n <- 35
-#' w <- pp_window(
-#'   lower = c(x = 0, y = 0, time = 0),
-#'   upper = c(x = 1, y = 1, time = 100),
-#'   axis_roles = c(x = "space", y = "space", time = "time")
-#' )
-#' pattern <- pp_pattern(
-#'   data = data.frame(
-#'     x = runif(n),
-#'     y = runif(n),
-#'     time = sort(runif(n, 0, 100)),
-#'     z = runif(n, 1, 20),
-#'     magn1 = 2.5 + rexp(n, 2)
-#'   ),
-#'   coords = c("x", "y", "time"),
-#'   marks = c("z", "magn1"),
-#'   window = w
-#' )
-#' catalog <- etas_catalog(pattern, longlat.to.km = FALSE)
-#'
-#' \donttest{
-#' fit <- fit_etas_pp(
-#'   catalog,
-#'   magn.threshold = 2.5,
-#'   formula1 = "time ~ magnitude - 1",
-#'   formula.bg = ~ x + y,
-#'   ndeclust = 2,
-#'   min.declust.iter = 1,
-#'   iterlim = 20,
-#'   verbose.convergence = FALSE,
-#'   verbose = FALSE,
-#'   trace = FALSE
-#' )
-#' fit
-#' summary(fit)
-#' }
-#'
-#' @references
-#' Hawkes, A. G. (1971). Spectra of some self-exciting and mutually exciting
-#' point processes. *Biometrika*, 58(1), 83--90.
-#'
-#' Ogata, Y. (1988). Statistical models for earthquake occurrences and residual
-#' analysis for point processes. *Journal of the American Statistical
-#' Association*, 83(401), 9--27.
-#'
-#' Zhuang, J., Ogata, Y. and Vere-Jones, D. (2002). Stochastic declustering of
-#' space-time earthquake occurrences. *Journal of the American Statistical
-#' Association*, 97(458), 369--380.
-#'
-#' Chiodi, M. and Adelfio, G. (2017). Mixed non-parametric and parametric
-#' estimation techniques in R package etasFLP for earthquakes' description.
-#' *Journal of Statistical Software*, 76(3), 1--29.
-#'
-#' @seealso
-#' [etas_catalog()] for data preparation, [decluster_etas_pp()] for extracting
-#' posterior classifications, [fit_pp()] and [predict_pp_fit()] for the
-#' background model, and [simulate_etas_pp()] for simulation.
-#'
-#' @family ETAS modelling
-#' @export
-fit_etas_pp <- function(
+# Internal ETAS fitting engine. The documented user interface is
+# fit_etas_pp() in ppinterface.R, which assembles starting values,
+# background settings and etas_control() options for this engine.
+.pp_fit_etas_engine <- function(
     catalog,
     time.update = FALSE,
     magn.threshold = 2.5,
@@ -2745,6 +2458,19 @@ fit_etas_pp <- function(
     stop_reason <- if (converged) "Convergence thresholds reached." else "Maximum declustering iterations reached."
   }
 
+  if (any(is.na(current_se_total))) {
+    warning(
+      paste0(
+        "Standard errors of the triggering parameters could not be computed: ",
+        "the Hessian of the log-likelihood is singular or not positive definite ",
+        "(estimated k0 = ", format(signif(current_params_total[["k0"]], 3)), "). ",
+        "This usually means that the catalogue contains too little triggering ",
+        "to identify the triggering parameters."
+      ),
+      call. = FALSE
+    )
+  }
+
   out <- list(
     call = match.call(),
     description = description,
@@ -2888,8 +2614,18 @@ fit_etas_pp <- function(
 #'   intensities, and posterior background and triggered probabilities.
 #'
 #' @examples
-#' \dontrun{
-#' # Assuming `fit` is an object returned by fit_etas_pp():
+#' \donttest{
+#' sim <- simulate_etas_pp(
+#'   params = c(mu = 0.5, k0 = 1.5e-5, c = 0.05, p = 1.2,
+#'              gamma = 0, d = 0.001, q = 2),
+#'   m0 = 2.5, b = 1, tmin = 0, t.lag = 500,
+#'   long.range = c(0, 1), lat.range = c(0, 1), longlat.to.km = FALSE,
+#'   n_support_obs = 50, mult_support = 1,
+#'   trig_lp_coefs = c(m_rel = 0.3),
+#'   seed = 19
+#' )
+#' fit <- fit_etas_pp(sim$catalog)
+#'
 #' event_probabilities <- decluster_etas_pp(fit)
 #' head(event_probabilities)
 #'
@@ -2979,10 +2715,21 @@ decluster_etas_pp <- function(
 #'   settings.
 #'
 #' @examples
-#' \dontrun{
-#' # Assuming `fit` is an object returned by fit_etas_pp():
+#' \donttest{
+#' sim <- simulate_etas_pp(
+#'   params = c(mu = 0.5, k0 = 1.5e-5, c = 0.05, p = 1.2,
+#'              gamma = 0, d = 0.001, q = 2),
+#'   m0 = 2.5, b = 1, tmin = 0, t.lag = 500,
+#'   long.range = c(0, 1), lat.range = c(0, 1), longlat.to.km = FALSE,
+#'   n_support_obs = 50, mult_support = 1,
+#'   trig_lp_coefs = c(m_rel = 0.3),
+#'   seed = 19
+#' )
+#' fit <- fit_etas_pp(sim$catalog)
+#'
 #' print(fit)
 #' summary(fit)
+#' plot(fit, what = "declustering")
 #' plot(fit, what = "time")
 #' plot(fit, what = "space")
 #' }
@@ -3109,7 +2856,9 @@ plot.pp_etas_fit <- function(
       legend = c("mostly triggered", "mixed", "mostly background"),
       col = pal[c(1L, 51L, 101L)],
       pch = 19,
-      bty = "n"
+      bty = "o",
+      bg = grDevices::adjustcolor("white", alpha.f = 0.85),
+      box.col = "grey80"
     )
 
     return(invisible(x))
@@ -3149,7 +2898,9 @@ plot.pp_etas_fit <- function(
     legend = c("triggered", "background"),
     col = pal[c(1L, 101L)],
     pch = 19,
-    bty = "n"
+    bty = "o",
+    bg = grDevices::adjustcolor("white", alpha.f = 0.85),
+    box.col = "grey80"
   )
 
   invisible(x)

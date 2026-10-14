@@ -106,16 +106,16 @@ field_data <- expand.grid(
   x = seq(0, 1, length.out = 5),
   y = seq(0, 1, length.out = 5)
 )
-field_data$temperature <- with(field_data, 15 + 3 * x - 2 * y)
+field_data$cov1 <- with(field_data, 15 + 3 * x - 2 * y)
 
-temperature <- pp_covariate(
+cov1 <- pp_covariate(
   data = field_data,
   coords = c("x", "y"),
-  value = "temperature",
+  value = "cov1",
   window = w,
-  name = "temperature"
+  name = "cov1"
 )
-temperature
+cov1
 
 # A geometric support used to calculate nearest-source distances
 stations <- pp_covariate(
@@ -156,11 +156,11 @@ st_field <- pp_covariate(
 \code{\link[=pp_grid]{pp_grid()}} for regular targets, and \code{\link[=pp_window]{pp_window()}} for reference domains.
 Covariate objects can be visualised with \code{plot()}.
 
-Other covariate tools: 
-\code{\link{evaluate_covariate}()},
-\code{\link{extract_covariates}()},
-\code{\link{pp_grid}()},
-\code{\link{print.pp_covariate}()},
-\code{\link{print.pp_grid}()}
+Other covariate tools:
+\code{\link[=evaluate_covariate]{evaluate_covariate()}},
+\code{\link[=extract_covariates]{extract_covariates()}},
+\code{\link[=pp_grid]{pp_grid()}},
+\code{\link[=print.pp_covariate]{print.pp_covariate()}},
+\code{\link[=print.pp_grid]{print.pp_grid()}}
 }
 \concept{covariate tools}

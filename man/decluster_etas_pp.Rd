@@ -34,8 +34,18 @@ classifications: the function does not randomly thin the catalog and does
 not assign a deterministic binary label.
 }
 \examples{
-\dontrun{
-# Assuming `fit` is an object returned by fit_etas_pp():
+\donttest{
+sim <- simulate_etas_pp(
+  params = c(mu = 0.5, k0 = 1.5e-5, c = 0.05, p = 1.2,
+             gamma = 0, d = 0.001, q = 2),
+  m0 = 2.5, b = 1, tmin = 0, t.lag = 500,
+  long.range = c(0, 1), lat.range = c(0, 1), longlat.to.km = FALSE,
+  n_support_obs = 50, mult_support = 1,
+  trig_lp_coefs = c(m_rel = 0.3),
+  seed = 19
+)
+fit <- fit_etas_pp(sim$catalog)
+
 event_probabilities <- decluster_etas_pp(fit)
 head(event_probabilities)
 
@@ -55,13 +65,13 @@ Association}, 97(458), 369--380.
 \seealso{
 \code{\link[=fit_etas_pp]{fit_etas_pp()}} and \code{\link[=plot.pp_etas_fit]{plot.pp_etas_fit()}}.
 
-Other ETAS modelling: 
-\code{\link{as_etas_catalog}()},
-\code{\link{etas_catalog}()},
-\code{\link{fit_etas_pp}()},
-\code{\link{print.pp_etas_catalog}()},
-\code{\link{print.pp_etas_fit}()},
-\code{\link{print.pp_etas_simulation}()},
-\code{\link{simulate_etas_pp}()}
+Other ETAS modelling:
+\code{\link[=as_etas_catalog]{as_etas_catalog()}},
+\code{\link[=etas_catalog]{etas_catalog()}},
+\code{\link[=fit_etas_pp]{fit_etas_pp()}},
+\code{\link[=print.pp_etas_catalog]{print.pp_etas_catalog()}},
+\code{\link[=print.pp_etas_fit]{print.pp_etas_fit()}},
+\code{\link[=print.pp_etas_simulation]{print.pp_etas_simulation()}},
+\code{\link[=simulate_etas_pp]{simulate_etas_pp()}}
 }
 \concept{ETAS modelling}

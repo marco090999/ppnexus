@@ -30,7 +30,7 @@ covariates, axis metadata, and window define the observed component of the
 cubature scheme.}
 
 \item{formula}{A one-sided model formula, such as \code{~ x + y} or
-\code{~ s(x, y) + temperature}. Every declared external covariate and mark must
+\code{~ s(x, y) + cov1}. Every declared external covariate and mark must
 occur in the formula. Formula variables may be coordinate names, declared
 marks, external covariates, or numeric columns stored in
 \code{pattern$covariates}.}
@@ -214,19 +214,19 @@ field_data <- expand.grid(
   x = seq(0, 1, length.out = 5),
   y = seq(0, 1, length.out = 5)
 )
-field_data$temperature <- with(field_data, 15 + 3 * x - 2 * y)
-temperature <- pp_covariate(
+field_data$cov1 <- with(field_data, 15 + 3 * x - 2 * y)
+cov1 <- pp_covariate(
   data = field_data,
   coords = c("x", "y"),
-  value = "temperature",
+  value = "cov1",
   window = w,
-  name = "temperature"
+  name = "cov1"
 )
 
 cub_cov <- pp_cubature(
   pattern = x,
-  formula = ~ x + temperature,
-  covariates = list(temperature = temperature),
+  formula = ~ x + cov1,
+  covariates = list(cov1 = cov1),
   nc = c(x = 6, y = 6)
 )
 
@@ -270,9 +270,9 @@ spatial point patterns. \emph{Australian & New Zealand Journal of Statistics},
 \code{\link[=pp_pattern]{pp_pattern()}} and \code{\link[=pp_window]{pp_window()}} construct the observed pattern and domain;
 \code{\link[=pp_covariate]{pp_covariate()}} and \code{\link[=evaluate_covariate]{evaluate_covariate()}} define and evaluate covariates.
 
-Other Poisson point-process models: 
-\code{\link{fit_pp}()},
-\code{\link{print.pp_cubature}()},
-\code{\link{print.pp_fit}()}
+Other Poisson point-process models:
+\code{\link[=fit_pp]{fit_pp()}},
+\code{\link[=print.pp_cubature]{print.pp_cubature()}},
+\code{\link[=print.pp_fit]{print.pp_fit()}}
 }
 \concept{Poisson point-process models}

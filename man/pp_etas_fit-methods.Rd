@@ -22,7 +22,7 @@ object of class \code{"summary_pp_etas_fit"} when printing a summary.}
 \item{digits}{Positive integer controlling the number of significant digits
 printed for likelihoods and parameter estimates.}
 
-\item{...}{Additional graphical parameters passed to \code{\link[graphics:plot.default]{graphics::plot()}} by
+\item{...}{Additional graphical parameters passed to \code{\link[graphics:plot]{graphics::plot()}} by
 the plot method. Additional arguments supplied to print or summary methods
 are currently unused.}
 
@@ -55,10 +55,21 @@ posterior background probabilities over time or space.
 Print, summarize, and plot an object returned by \code{\link[=fit_etas_pp]{fit_etas_pp()}}.
 }
 \examples{
-\dontrun{
-# Assuming `fit` is an object returned by fit_etas_pp():
+\donttest{
+sim <- simulate_etas_pp(
+  params = c(mu = 0.5, k0 = 1.5e-5, c = 0.05, p = 1.2,
+             gamma = 0, d = 0.001, q = 2),
+  m0 = 2.5, b = 1, tmin = 0, t.lag = 500,
+  long.range = c(0, 1), lat.range = c(0, 1), longlat.to.km = FALSE,
+  n_support_obs = 50, mult_support = 1,
+  trig_lp_coefs = c(m_rel = 0.3),
+  seed = 19
+)
+fit <- fit_etas_pp(sim$catalog)
+
 print(fit)
 summary(fit)
+plot(fit, what = "declustering")
 plot(fit, what = "time")
 plot(fit, what = "space")
 }
@@ -67,13 +78,13 @@ plot(fit, what = "space")
 \seealso{
 \code{\link[=fit_etas_pp]{fit_etas_pp()}} and \code{\link[=decluster_etas_pp]{decluster_etas_pp()}}.
 
-Other ETAS modelling: 
-\code{\link{as_etas_catalog}()},
-\code{\link{decluster_etas_pp}()},
-\code{\link{etas_catalog}()},
-\code{\link{fit_etas_pp}()},
-\code{\link{print.pp_etas_catalog}()},
-\code{\link{print.pp_etas_simulation}()},
-\code{\link{simulate_etas_pp}()}
+Other ETAS modelling:
+\code{\link[=as_etas_catalog]{as_etas_catalog()}},
+\code{\link[=decluster_etas_pp]{decluster_etas_pp()}},
+\code{\link[=etas_catalog]{etas_catalog()}},
+\code{\link[=fit_etas_pp]{fit_etas_pp()}},
+\code{\link[=print.pp_etas_catalog]{print.pp_etas_catalog()}},
+\code{\link[=print.pp_etas_simulation]{print.pp_etas_simulation()}},
+\code{\link[=simulate_etas_pp]{simulate_etas_pp()}}
 }
 \concept{ETAS modelling}

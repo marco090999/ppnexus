@@ -136,11 +136,11 @@ plot(x, mark = "mark")
 \seealso{
 \code{\link[=pp_pattern]{pp_pattern()}} and \code{\link[=pp_window]{pp_window()}}.
 
-Other point-pattern data: 
-\code{\link{pp_grid}()},
-\code{\link{pp_pattern}()},
-\code{\link{pp_window}()},
-\code{\link{print.pp_grid}()},
-\code{\link{print.pp_window}()}
+Other point-pattern data:
+\code{\link[=pp_grid]{pp_grid()}},
+\code{\link[=pp_pattern]{pp_pattern()}},
+\code{\link[=pp_window]{pp_window()}},
+\code{\link[=print.pp_grid]{print.pp_grid()}},
+\code{\link[=print.pp_window]{print.pp_window()}}
 }
 \concept{point-pattern data}

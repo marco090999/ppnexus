@@ -50,3 +50,20 @@ etas_trigger_reference <- function(tflag, k, c, p, g, d, q,
 
   out
 }
+
+# Number of pages drawn on a PDF device while evaluating `expr`.
+count_pdf_pages <- function(expr) {
+  file <- tempfile(fileext = ".pdf")
+  on.exit(unlink(file), add = TRUE)
+  grDevices::pdf(file, compress = FALSE)
+  device_open <- TRUE
+  on.exit(if (device_open) grDevices::dev.off(), add = TRUE, after = FALSE)
+  force(expr)
+  grDevices::dev.off()
+  device_open <- FALSE
+
+  content <- readLines(file, warn = FALSE, encoding = "bytes")
+  pages <- grepl("/Type /Page\\b", content, useBytes = TRUE) &
+    !grepl("/Type /Pages", content, useBytes = TRUE)
+  as.integer(sum(pages))
+}

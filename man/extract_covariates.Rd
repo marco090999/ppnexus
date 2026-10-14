@@ -63,14 +63,14 @@ support <- expand.grid(
   x = seq(0, 1, length.out = 5),
   y = seq(0, 1, length.out = 5)
 )
-support$temperature <- with(support, 10 + x - 2 * y)
+support$cov1 <- with(support, 10 + x - 2 * y)
 
-temperature <- pp_covariate(
+cov1 <- pp_covariate(
   support,
   coords = c("x", "y"),
-  value = "temperature",
+  value = "cov1",
   window = w,
-  name = "temperature"
+  name = "cov1"
 )
 stations <- pp_covariate(
   data.frame(x = c(0.2, 0.8), y = c(0.25, 0.75)),
@@ -82,16 +82,16 @@ stations <- pp_covariate(
 target_grid <- pp_grid(w, n = 4)
 values <- extract_covariates(
   covariates = list(
-    temperature = temperature,
+    cov1 = cov1,
     station_distance = stations
   ),
   at = target_grid,
   methods = c(
-    temperature = "idw",
+    cov1 = "idw",
     station_distance = "distance_min"
   ),
   method_args = list(
-    temperature = list(p = 2, k = 4)
+    cov1 = list(p = 2, k = 4)
   )
 )
 head(values)
@@ -101,11 +101,11 @@ head(values)
 \code{\link[=evaluate_covariate]{evaluate_covariate()}} for single-covariate evaluation, \code{\link[=pp_covariate]{pp_covariate()}} for
 construction, and \code{\link[=pp_grid]{pp_grid()}} for regular targets.
 
-Other covariate tools: 
-\code{\link{evaluate_covariate}()},
-\code{\link{pp_covariate}()},
-\code{\link{pp_grid}()},
-\code{\link{print.pp_covariate}()},
-\code{\link{print.pp_grid}()}
+Other covariate tools:
+\code{\link[=evaluate_covariate]{evaluate_covariate()}},
+\code{\link[=pp_covariate]{pp_covariate()}},
+\code{\link[=pp_grid]{pp_grid()}},
+\code{\link[=print.pp_covariate]{print.pp_covariate()}},
+\code{\link[=print.pp_grid]{print.pp_grid()}}
 }
 \concept{covariate tools}

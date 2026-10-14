@@ -91,23 +91,13 @@ test_that("K_fit_pp with an intercept-only model equals K_pp with constant inten
 
 test_that("plotting a spatial K envelope draws the GET figure", {
   # Regression test: plot.pp_envelope() did not print the ggplot returned by
-  # GET, so nothing was drawn.
+  # GET, so nothing was drawn. The check counts the pages written to a PDF
+  # device and therefore does not depend on ggplot2 internals.
   x <- simulate_pp(unit_square(), expected_n = 60, seed = 17)
   fit <- fit_pp(x, ~1, nc = 5)
   env <- envelope_pp(fit, nsim = 19, alpha = 0.1, r = seq(0, 0.2, length.out = 6),
                      simulation_args = list(bound_n = 6), seed = 18,
                      verbose = FALSE)
 
-  drawn <- FALSE
-  local_mocked_bindings(
-    print.ggplot = function(x, ...) {
-      drawn <<- TRUE
-      invisible(x)
-    },
-    .package = "ggplot2"
-  )
-  pdf(NULL)
-  on.exit(grDevices::dev.off(), add = TRUE)
-  plot(env)
-  expect_true(drawn)
+  expect_identical(count_pdf_pages(plot(env)), 1L)
 })

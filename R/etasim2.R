@@ -2624,7 +2624,9 @@ plot.pp_etas_simulation <- function(
       pt.cex = 1.5,
       pt.lwd = 1.7,
       cex = legend_cex,
-      bty = "n",
+      bty = "o",
+      bg = grDevices::adjustcolor("white", alpha.f = 0.85),
+      box.col = "grey80",
       title = "Event type"
     )
   }
@@ -2686,7 +2688,9 @@ plot.pp_etas_simulation <- function(
       pt.cex = representative_cex,
       pt.lwd = 1.5,
       cex = legend_cex,
-      bty = "n",
+      bty = "o",
+      bg = grDevices::adjustcolor("white", alpha.f = 0.85),
+      box.col = "grey80",
       title = "Magnitude"
     )
   }

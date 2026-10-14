@@ -1374,7 +1374,12 @@ simulate_lgcp_pp <- function(
       }
     })
 
-    result_i <- simulate_pp(
+    # For an LGCP the intensity contains a random latent field, so an exact
+    # user bound cannot be supplied in general: the grid bound, combined with
+    # automatic restarts on detected violations, is the intended mechanism.
+    # The generic simulate_pp() warning about grid bounds is therefore not
+    # actionable here and is muffled; any other warning is still signalled.
+    result_i <- .pp_lgcp_muffle_grid_bound_warning(simulate_pp(
       window = window,
       expected_n = NULL,
       log_intensity = lgcp_log_intensity,
@@ -1397,7 +1402,7 @@ simulate_lgcp_pp <- function(
       nsim = 1L,
       seed = NULL,
       max_candidates = max_candidates
-    )
+    ))
 
     results[[simulation_id]] <- .pp_lgcp_attach_simulation_metadata(
       x = result_i,
@@ -1988,14 +1993,27 @@ simulate_lgcp_pp <- function(
     )
   }
 
-  optimisation <- stats::optim(
-    par = parameters$start,
-    fn = objective,
-    method = "L-BFGS-B",
-    lower = parameters$lower,
-    upper = parameters$upper,
-    control = optim_control
-  )
+  # L-BFGS-B needs finite box constraints: with unbounded parameters (the
+  # default for a custom covariance) its first quasi-Newton step can leave the
+  # valid region and the search stops at the starting values with a spurious
+  # convergence code. Nelder-Mead is used when no bound is finite.
+  if (any(is.finite(parameters$lower)) || any(is.finite(parameters$upper))) {
+    optimisation <- stats::optim(
+      par = parameters$start,
+      fn = objective,
+      method = "L-BFGS-B",
+      lower = parameters$lower,
+      upper = parameters$upper,
+      control = optim_control
+    )
+  } else {
+    optimisation <- stats::optim(
+      par = parameters$start,
+      fn = objective,
+      method = "Nelder-Mead",
+      control = optim_control
+    )
+  }
 
   theta <- as.numeric(optimisation$par)
   names(theta) <- parameter_names
@@ -2029,147 +2047,10 @@ simulate_lgcp_pp <- function(
 }
 
 
-#' Fit a multidimensional log-Gaussian Cox process
-#'
-#' Fits a spatial or spatio-temporal log-Gaussian Cox process in two stages.
-#' The marginal first-order intensity is estimated with `fit_pp()`, retaining
-#' its support for arbitrary coordinate dimension, external covariates,
-#' continuous marks, categorical marks, smooth terms, and multidimensional
-#' cubature. The latent Gaussian covariance parameters are then estimated by
-#' minimum contrast against the inhomogeneous `K`-function returned by
-#' `K_fit_pp()`.
-#'
-#' @details
-#' The fitted LGCP is parameterised as
-#' \deqn{\Lambda(u)=\rho(u;\beta)\exp\{Z(u)-C_\theta(0)/2\},}
-#' so that `rho(u; beta)` is the marginal intensity estimated in the first
-#' stage. For a stationary isotropic Gaussian field,
-#' \deqn{g_\theta(h)=\exp\{C_\theta(h)\}}
-#' in the spatial case and
-#' \deqn{g_\theta(h,v)=\exp\{C_\theta(h,v)\}}
-#' in the spatio-temporal case.
-#'
-#' For `d` spatial dimensions, the theoretical spatial `K`-function is
-#' \deqn{K_\theta(r)=a_d\int_0^r h^{d-1}\exp\{C_\theta(h)\}\,dh,}
-#' where `a_d = 2*pi^(d/2)/Gamma(d/2)` is the surface area of the unit sphere.
-#' For `d` spatial dimensions plus one temporal axis,
-#' \deqn{K_\theta(r,u)=2a_d\int_0^r\int_0^u
-#' h^{d-1}\exp\{C_\theta(h,v)\}\,dv\,dh.}
-#'
-#' The minimum-contrast criterion compares transformed empirical and theoretical
-#' `K`-functions. By default it uses fourth-root transformation
-#' (`contrast_q = 1/4`) and squared discrepancy (`contrast_p = 2`), together
-#' with trapezoidal integration weights on the supplied lag grid.
-#'
-#' The first-stage `fit_pp()` is a first-order composite/working Poisson fit for
-#' an LGCP; it is not the full latent-Gaussian likelihood. Accordingly, its
-#' model-based Poisson covariance matrix does not automatically include
-#' extra-Poisson variation induced by the latent field.
-#'
-#' @param pattern A `pp` point pattern with a finite `pp_window`, at least one
-#'   spatial axis, and at most one temporal axis.
-#' @param formula,covariates,covariate_methods,covariate_args First-order model
-#'   formula and external-covariate settings passed directly to `fit_pp()`.
-#' @param continuous_marks,categorical_marks,categorical_levels,event_weights
-#'   Mark specifications and optional event weights passed directly to `fit_pp()`.
-#' @param q,dummy_layout,nc,max_tiles,max_quadrature_points Cubature settings
-#'   passed directly to `fit_pp()`.
-#' @param max_mark_combinations,seed,gam_args,keep_cubature Mark-combination,
-#'   random-seed, GAM, and storage settings passed directly to `fit_pp()`.
-#' @param cov_model Latent covariance model. Spatial options are
-#'   `"exponential"`, `"gaussian"`, `"matern"`, and `"custom"`;
-#'   spatio-temporal options are `"separable_exponential"`, `"gneiting"`, and
-#'   `"custom"`.
-#' @param covariance_function Optional custom stationary isotropic covariance
-#'   function using any subset of `h`, `u`, `params`, and `d_space`. The user
-#'   is responsible for its mathematical validity as a covariance function.
-#' @param start,lower,upper Optional named vectors or named lists controlling
-#'   second-stage optimisation. Partial named overrides are allowed for built-in
-#'   covariance models. A custom model requires explicit named `start` values.
-#' @param r Spatial lags supplied to `K_fit_pp()`. If `NULL`, package defaults
-#'   are used.
-#' @param u Temporal lags for a spatio-temporal pattern. Must be `NULL` for a
-#'   purely spatial pattern.
-#' @param correction Edge correction passed to `K_fit_pp()`.
-#' @param contrast_q Positive power applied to empirical and theoretical
-#'   `K`-functions before comparison. Default `1/4`.
-#' @param contrast_p Positive power of the absolute transformed discrepancy.
-#'   Default `2`.
-#' @param contrast_weight Optional numeric weights aligned with the empirical
-#'   `K`, or a function using `r`, `u`, `Khat`, and `Kmodel`. These weights are
-#'   multiplied by trapezoidal integration weights.
-#' @param integration_n Numerical integration resolution for theoretical
-#'   `K`-functions. For spatial models it must be one integer. For
-#'   spatio-temporal models it may be one integer or a length-two vector for
-#'   spatial and temporal integration grids.
-#' @param optim_control Control list passed to `optim()` with method
-#'   `"L-BFGS-B"`.
-#' @param k_chunk_size Pairwise computation chunk size passed to `K_fit_pp()`.
-#' @param mark_n Numerical integration resolution used by `K_fit_pp()` when the
-#'   fitted first-order model contains continuous joint marks.
-#' @param max_ground_mark_combinations Maximum combined mark states permitted
-#'   during ground-intensity marginalisation for the empirical `K`-function.
-#' @param verbose Logical; print second-stage progress messages.
-#'
-#' @return An object of class `pp_lgcp_fit` containing the first-order `pp_fit`,
-#'   estimated covariance parameters, empirical and theoretical `K`-functions,
-#'   minimum-contrast details, optimizer output, and the complete model
-#'   specification required for simulation.
-#'
-#' @references
-#' Møller, J., Syversveen, A. R., and Waagepetersen, R. P. (1998).
-#' Log Gaussian Cox processes. *Scandinavian Journal of Statistics*, 25,
-#' 451--482. doi:10.1111/1467-9469.00115.
-#'
-#' Baddeley, A. J., Møller, J., and Waagepetersen, R. (2000).
-#' Non- and semi-parametric estimation of interaction in inhomogeneous point
-#' patterns. *Statistica Neerlandica*, 54, 329--350.
-#' doi:10.1111/1467-9574.00144.
-#'
-#' Gabriel, E. and Diggle, P. J. (2009). Second-order analysis of
-#' inhomogeneous spatio-temporal point process data. *Statistica Neerlandica*,
-#' 63, 43--51. doi:10.1111/j.1467-9574.2008.00407.x.
-#'
-#' Gneiting, T. (2002). Nonseparable, stationary covariance functions for
-#' space-time data. *Journal of the American Statistical Association*, 97,
-#' 590--600. doi:10.1198/016214502760047113.
-#'
-#' Davies, T. M. and Hazelton, M. L. (2013). Assessing minimum contrast
-#' parameter estimation for spatial and spatiotemporal log-Gaussian Cox
-#' processes. *Statistica Neerlandica*, 67, 355--389.
-#'
-#' @seealso `fit_pp()`, `K_fit_pp()`, `simulate_lgcp_pp()`, `simulate.pp_lgcp_fit()`
-#'
-#' @examples
-#' w <- pp_window(
-#'   lower = c(x = 0, y = 0),
-#'   upper = c(x = 1, y = 1)
-#' )
-#'
-#' x <- simulate_lgcp_pp(
-#'   window = w,
-#'   expected_n = 100,
-#'   cov_model = "exponential",
-#'   covariance_params = c(sigma2 = 0.4, alpha = 0.12),
-#'   field_n = 8,
-#'   output = "pattern",
-#'   seed = 2
-#' )
-#'
-#' fit <- fit_lgcp_pp(
-#'   pattern = x,
-#'   formula = ~ 1,
-#'   cov_model = "exponential",
-#'   r = seq(0, 0.25, length.out = 12),
-#'   nc = 8,
-#'   integration_n = 120,
-#'   seed = 3
-#' )
-#'
-#' fit
-#'
-#' @export
-fit_lgcp_pp <- function(
+# Internal LGCP fitting engine. The documented user interface is
+# fit_lgcp_pp() in ppinterface.R, which forwards first-order settings to
+# fit_pp() and second-order settings from lgcp_control().
+.pp_fit_lgcp_engine <- function(
     pattern,
     formula = ~ 1,
     covariates = NULL,
@@ -2669,8 +2550,7 @@ fit_lgcp_pp <- function(
 #'   cov_model = "exponential",
 #'   r = seq(0, 0.2, length.out = 8),
 #'   nc = 6,
-#'   integration_n = 80,
-#'   seed = 11
+#'   control = lgcp_control(integration_n = 80)
 #' )
 #'
 #' x_new <- simulate(fit, nsim = 1, field_n = 6, seed = 12)
@@ -3077,4 +2957,16 @@ print.pp_lgcp_simulation <- function(x, digits = 4, ...) {
   }
 
   invisible(x)
+}
+
+
+.pp_lgcp_muffle_grid_bound_warning <- function(expr) {
+  withCallingHandlers(
+    expr,
+    warning = function(w) {
+      if (grepl("uses a numerical upper-bound estimate", conditionMessage(w), fixed = TRUE)) {
+        invokeRestart("muffleWarning")
+      }
+    }
+  )
 }

@@ -1520,7 +1520,7 @@
 #'   covariates, axis metadata, and window define the observed component of the
 #'   cubature scheme.
 #' @param formula A one-sided model formula, such as `~ x + y` or
-#'   `~ s(x, y) + temperature`. Every declared external covariate and mark must
+#'   `~ s(x, y) + cov1`. Every declared external covariate and mark must
 #'   occur in the formula. Formula variables may be coordinate names, declared
 #'   marks, external covariates, or numeric columns stored in
 #'   `pattern$covariates`.
@@ -1677,19 +1677,19 @@
 #'   x = seq(0, 1, length.out = 5),
 #'   y = seq(0, 1, length.out = 5)
 #' )
-#' field_data$temperature <- with(field_data, 15 + 3 * x - 2 * y)
-#' temperature <- pp_covariate(
+#' field_data$cov1 <- with(field_data, 15 + 3 * x - 2 * y)
+#' cov1 <- pp_covariate(
 #'   data = field_data,
 #'   coords = c("x", "y"),
-#'   value = "temperature",
+#'   value = "cov1",
 #'   window = w,
-#'   name = "temperature"
+#'   name = "cov1"
 #' )
 #'
 #' cub_cov <- pp_cubature(
 #'   pattern = x,
-#'   formula = ~ x + temperature,
-#'   covariates = list(temperature = temperature),
+#'   formula = ~ x + cov1,
+#'   covariates = list(cov1 = cov1),
 #'   nc = c(x = 6, y = 6)
 #' )
 #'
@@ -2104,7 +2104,11 @@ print.summary_pp_cubature <- function(x, digits = 4, ...) {
   cat("\n")
 
   cat("Joint continuous-domain axes:\n")
-  print(x$domain_axes, row.names = FALSE)
+  domain_axes <- x$domain_axes
+  if (!is.null(domain_axes$unit)) {
+    domain_axes$unit[is.na(domain_axes$unit)] <- ""
+  }
+  print(domain_axes, row.names = FALSE)
   cat("\n")
 
   cat("Cubature:\n")
@@ -2426,19 +2430,19 @@ print.summary_pp_cubature <- function(x, digits = 4, ...) {
 #'   x = seq(0, 1, length.out = 6),
 #'   y = seq(0, 1, length.out = 6)
 #' )
-#' field_data$temperature <- with(field_data, 2 * x + sin(pi * y))
-#' temperature <- pp_covariate(
+#' field_data$cov1 <- with(field_data, 2 * x + sin(pi * y))
+#' cov1 <- pp_covariate(
 #'   data = field_data,
 #'   coords = c("x", "y"),
-#'   value = "temperature",
+#'   value = "cov1",
 #'   window = w,
-#'   name = "temperature"
+#'   name = "cov1"
 #' )
 #'
 #' fit_cov <- fit_pp(
 #'   pattern = x,
-#'   formula = ~ x + y + temperature,
-#'   covariates = list(temperature = temperature),
+#'   formula = ~ x + y + cov1,
+#'   covariates = list(cov1 = cov1),
 #'   nc = 8
 #' )
 #'

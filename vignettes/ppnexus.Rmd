@@ -438,12 +438,11 @@ fitted trend. The model works in any dimension.
 The quality of the first-order trend directly affects the second-order
 estimates: structure that the trend fails to capture is absorbed by the
 latent field. We simulate an LGCP whose trend depends on both coordinates,
-the second one non-linearly. Because the latent field is random, the
-thinning bound is estimated numerically on a grid; `simulate_lgcp_pp()` warns
-about this and restarts the simulation if the bound turns out to be
-exceeded.
+the second one non-linearly. (Because the latent field is random, the
+simulation bound is estimated numerically on a grid, and the simulation is
+restarted automatically if it turns out to be exceeded.)
 
-```{r lgcp-simulate, warning = FALSE}
+```{r lgcp-simulate}
 unit <- pp_window(lower = c(x = 0, y = 0), upper = c(x = 1, y = 1))
 
 lgcp <- simulate_lgcp_pp(
@@ -461,18 +460,23 @@ lgcp <- simulate_lgcp_pp(
 
 We fit the LGCP twice: with a constant trend, as in a classical stationary
 analysis, and with an enriched trend containing a linear term in `x` and a
-smooth term in `y`.
+smooth term in `y`. The first-order part of `fit_lgcp_pp()` has exactly the
+interface of `fit_pp()` (formula, covariates, marks, and settings such as
+`nc`), while the numerical settings of the second-order stage are collected
+by `lgcp_control()`.
 
 ```{r lgcp-fit}
 r <- seq(0.01, 0.2, length.out = 15)
 
 fit_lgcp_constant <- fit_lgcp_pp(
   lgcp, formula = ~ 1,
-  cov_model = "exponential", r = r, nc = 8, integration_n = 150, seed = 8
+  cov_model = "exponential", r = r, nc = 8,
+  control = lgcp_control(integration_n = 150)
 )
 fit_lgcp <- fit_lgcp_pp(
   lgcp, formula = ~ x + s(y, k = 6),
-  cov_model = "exponential", r = r, nc = 8, integration_n = 150, seed = 8
+  cov_model = "exponential", r = r, nc = 8,
+  control = lgcp_control(integration_n = 150)
 )
 
 round(rbind(
@@ -534,19 +538,13 @@ etas_sim
 ```
 
 The background is fitted on the working spatial plane, whose coordinates are
-called `x` and `y`:
+called `x` and `y`. Its formula is the only model specification needed here;
+starting values (`start`), fixed parameters (`fixed`), further settings of
+the background fit (`background`) and algorithmic settings
+(`control = etas_control()`) all have defaults.
 
 ```{r etas-fit}
-etas_fit <- fit_etas_pp(
-  etas_sim$catalog,
-  magn.threshold = 2.5,
-  formula.bg = ~ x + y,
-  ndeclust = 5,
-  iterlim = 100,
-  verbose = FALSE,
-  trace = FALSE,
-  verbose.convergence = FALSE
-)
+etas_fit <- fit_etas_pp(etas_sim$catalog, formula.bg = ~ x + y)
 etas_fit
 ```
 

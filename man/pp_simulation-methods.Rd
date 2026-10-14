@@ -62,7 +62,7 @@ print(sim_summary)
 \seealso{
 \code{\link[=simulate_pp]{simulate_pp()}}, \code{\link[=summary.pp]{summary.pp()}}, and \code{\link[=print.pp]{print.pp()}}.
 
-Other Poisson-process simulation: 
-\code{\link{simulate_pp}()}
+Other Poisson-process simulation:
+\code{\link[=simulate_pp]{simulate_pp()}}
 }
 \concept{Poisson-process simulation}

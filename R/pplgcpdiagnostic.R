@@ -792,8 +792,7 @@
 #'   cov_model = "exponential",
 #'   r = seq(0.01, 0.25, length.out = 15),
 #'   nc = 10,
-#'   integration_n = 150,
-#'   seed = 102
+#'   control = lgcp_control(integration_n = 150)
 #' )
 #'
 #' # Small nsim only for an executable example. Use many more in analysis.
@@ -1235,6 +1234,8 @@ plot.pp_lgcp_diagnostic <- function(
     plotted <- plot(x$envelope, ...)
 
     if (inherits(plotted, "ggplot")) {
+      plotted <- plotted +
+        ggplot2::labs(x = "Spatial lag r", y = "Khat(r) - K_LGCP(r)")
       print(plotted)
     }
 
@@ -1298,7 +1299,7 @@ plot.pp_lgcp_diagnostic <- function(
 #' @param variable Profile variable(s), or `"all"`, in
 #'   `diagnose_first_order_lgcp_pp()`. Coordinate axes and fitted numeric
 #'   covariates supported by `residual_profile_pp()` can be used. In the plot
-#'   method, supply one retained profile variable; the first is used by default.
+#'   method, supply retained profile variable(s); by default all are plotted.
 #' @param nsim Number of primary LGCP simulations.
 #' @param grid Optional `pp_residual_grid` or `pp_grid` supplied to
 #'   `residuals_pp()` for the observed residual calculation.
@@ -1390,8 +1391,7 @@ plot.pp_lgcp_diagnostic <- function(
 #'   cov_model = "exponential",
 #'   r = seq(0.01, 0.25, length.out = 15),
 #'   nc = 10,
-#'   integration_n = 150,
-#'   seed = 202
+#'   control = lgcp_control(integration_n = 150)
 #' )
 #'
 #' # Small nsim only for an executable example. Use many more in analysis.
@@ -1831,43 +1831,5 @@ plot.pp_lgcp_first_order_diagnostic <- function(
     what = c("envelope", "profile"),
     ...
 ) {
-  if (!inherits(x, "pp_lgcp_first_order_diagnostic")) {
-    stop(
-      "`x` must inherit from class 'pp_lgcp_first_order_diagnostic'.",
-      call. = FALSE
-    )
-  }
-
-  what <- match.arg(what)
-  variables <- names(x$envelopes)
-
-  if (is.null(variable)) {
-    variable <- variables[1L]
-  }
-
-  if (!is.character(variable) || length(variable) != 1L ||
-      !variable %in% variables) {
-    stop(
-      sprintf(
-        "`variable` must name one available residual profile: %s.",
-        paste(variables, collapse = ", ")
-      ),
-      call. = FALSE
-    )
-  }
-
-  object <- x$envelopes[[variable]]
-
-  if (identical(what, "profile")) {
-    plot(object$profile, ...)
-    return(invisible(x))
-  }
-
-  plotted <- plot(object$envelope, ...)
-
-  if (inherits(plotted, "ggplot")) {
-    print(plotted)
-  }
-
-  invisible(x)
+  .pp_plot_profile_envelopes(x, variable = variable, what = match.arg(what), ...)
 }

@@ -302,25 +302,25 @@ cov_data <- expand.grid(
   x = seq(0, 1, length.out = 5),
   y = seq(0, 1, length.out = 5)
 )
-cov_data$temperature <- cov_data$x + cov_data$y
+cov_data$cov1 <- cov_data$x + cov_data$y
 
-temperature <- pp_covariate(
+cov1 <- pp_covariate(
   data = cov_data,
   coords = c("x", "y"),
-  value = "temperature",
+  value = "cov1",
   window = w,
-  name = "temperature"
+  name = "cov1"
 )
 
 x_covariate <- simulate_pp(
   window = w,
   log_intensity = function(covariates, params) {
-    params$beta0 + params$beta_temperature * covariates$temperature
+    params$beta0 + params$beta_cov1 * covariates$cov1
   },
-  params = list(beta0 = log(15), beta_temperature = 0.5),
-  covariates = list(temperature = temperature),
-  covariate_methods = c(temperature = "idw"),
-  covariate_args = list(temperature = list(k = 6)),
+  params = list(beta0 = log(15), beta_cov1 = 0.5),
+  covariates = list(cov1 = cov1),
+  covariate_methods = c(cov1 = "idw"),
+  covariate_args = list(cov1 = list(k = 6)),
   bound = "user",
   lambda_upper = exp(log(15) + 0.5 * 2),
   output = "enriched",
@@ -353,7 +353,7 @@ Point Processes. Volume I: Elementary Theory and Methods}, 2nd ed. Springer.
 \code{\link[=pp_window]{pp_window()}}, \code{\link[=pp_pattern]{pp_pattern()}}, \code{\link[=pp_covariate]{pp_covariate()}}, \code{\link[=evaluate_covariate]{evaluate_covariate()}},
 \code{\link[=pp_grid]{pp_grid()}}, \code{\link[=fit_pp]{fit_pp()}}, and \code{\link[=simulate_lgcp_pp]{simulate_lgcp_pp()}}.
 
-Other Poisson-process simulation: 
-\code{\link{print.pp_simulation}()}
+Other Poisson-process simulation:
+\code{\link[=print.pp_simulation]{print.pp_simulation()}}
 }
 \concept{Poisson-process simulation}

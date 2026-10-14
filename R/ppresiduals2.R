@@ -2691,8 +2691,9 @@ diagnose_first_order_pp <- function(...) {
 #' @param object A residual-envelope or first-order diagnostic object to
 #'   summarise.
 #' @param digits Number of significant digits used when printing.
-#' @param variable Optional name of the profile variable to display. It defaults
-#'   to the first available variable.
+#' @param variable Optional name(s) of the profile variable(s) to display. By
+#'   default every variable retained in the diagnostic is plotted, one figure
+#'   per variable.
 #' @param what `"envelope"` or `"profile"`.
 #' @param ... Additional arguments. Plotting arguments are passed to the
 #'   selected `GET` plot or residual-profile plot.
@@ -2810,37 +2811,62 @@ plot.pp_residual_envelope <- function(
     stop("`x` must inherit from class 'pp_residual_envelope'.", call. = FALSE)
   }
 
-  what <- match.arg(what)
+  .pp_plot_profile_envelopes(x, variable = variable, what = match.arg(what), ...)
+}
+
+
+# Shared plotting of residual-profile global envelopes ------------------------
+#
+# Each profile variable has its own GET envelope. GET draws short curves as a
+# "dot plot" with generic axis labels (r, T(r)); here every envelope is drawn
+# as a band with the profile variable and residual type on the axes, one page
+# per variable unless a single variable is requested.
+
+.pp_plot_profile_envelopes <- function(x, variable = NULL, what = "envelope", ...) {
   variables <- names(x$envelopes)
 
   if (is.null(variable)) {
-    variable <- variables[1L]
+    variable <- variables
   }
 
-  if (!is.character(variable) || length(variable) != 1L ||
-      !variable %in% variables) {
+  if (!is.character(variable) || length(variable) < 1L ||
+      !all(variable %in% variables)) {
     stop(
       sprintf(
-        "`variable` must name one available residual profile: %s.",
+        "`variable` must name available residual profile(s): %s.",
         paste(variables, collapse = ", ")
       ),
       call. = FALSE
     )
   }
 
-  object <- x$envelopes[[variable]]
+  form <- if (is.null(x$settings$form)) "cumulative" else x$settings$form
+  residual <- if (is.null(x$settings$residual)) "raw" else x$settings$residual
+  y_label <- paste(form, residual, "residual")
 
-  if (identical(what, "profile")) {
-    plot(object$profile, ...)
-    return(invisible(x))
-  }
+  dots <- list(...)
 
-  plotted <- plot(object$envelope, ...)
+  for (name_i in variable) {
+    object <- x$envelopes[[name_i]]
 
-  # GET may return a ggplot object. Inside an S3 wrapper it must be printed
-  # explicitly; otherwise nothing is drawn in non-interactive method calls.
-  if (inherits(plotted, "ggplot")) {
-    print(plotted)
+    if (identical(what, "profile")) {
+      do.call(plot, c(list(object$profile), dots))
+      next
+    }
+
+    plot_args <- dots
+    if (is.null(plot_args$dotplot)) {
+      plot_args$dotplot <- FALSE
+    }
+
+    plotted <- do.call(plot, c(list(object$envelope), plot_args))
+
+    # GET returns a ggplot object, which must be printed explicitly inside an
+    # S3 method; otherwise nothing is drawn.
+    if (inherits(plotted, "ggplot")) {
+      plotted <- plotted + ggplot2::labs(x = name_i, y = y_label)
+      print(plotted)
+    }
   }
 
   invisible(x)

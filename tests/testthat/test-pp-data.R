@@ -72,5 +72,7 @@ test_that("pp_window has a compact print method", {
   expect_identical(out[1], "<pp_window>")
   expect_true(any(grepl("time \\[days\\] \\(time\\): \\[0, 30\\]", out)))
   expect_true(any(grepl("Hypervolume: 1500", out)))
-  expect_invisible(print(w))
+  visibility <- NULL
+  capture.output(visibility <- withVisible(print(w)))
+  expect_false(visibility$visible)
 })

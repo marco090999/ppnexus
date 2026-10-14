@@ -11,8 +11,10 @@ simulate_reference_lgcp <- function(output = "pattern") {
 }
 
 test_that("LGCP simulation is reproducible and centres the latent field", {
-  a <- suppressWarnings(simulate_reference_lgcp("diagnostic"))
-  b <- suppressWarnings(simulate_reference_lgcp("diagnostic"))
+  # Regression test: the non-actionable grid-bound warning of simulate_pp()
+  # is no longer emitted for LGCPs.
+  expect_no_warning(a <- simulate_reference_lgcp("diagnostic"))
+  b <- simulate_reference_lgcp("diagnostic")
   expect_identical(a$pattern$coords, b$pattern$coords)
 
   field <- a$lgcp$field
@@ -23,10 +25,11 @@ test_that("LGCP simulation is reproducible and centres the latent field", {
 
 test_that("the fitted LGCP K-function solves the exponential-model integral", {
   skip_on_cran()
-  x <- suppressWarnings(simulate_reference_lgcp())
+  x <- simulate_reference_lgcp()
   r <- seq(0.01, 0.25, length.out = 15)
   fit <- fit_lgcp_pp(pattern = x, formula = ~1, cov_model = "exponential",
-                     r = r, nc = 8, integration_n = 150, seed = 3)
+                     r = r, nc = 8,
+                     control = lgcp_control(integration_n = 150))
   th <- fit$theta
 
   # K(r) = 2 pi int_0^r s exp(C(s)) ds with C(s) = sigma2 exp(-s / alpha).
@@ -43,14 +46,61 @@ test_that("the fitted LGCP K-function solves the exponential-model integral", {
 
 test_that("minimum contrast recovers the covariance parameters", {
   skip_on_cran()
-  x <- suppressWarnings(simulate_reference_lgcp())
+  x <- simulate_reference_lgcp()
   fit <- fit_lgcp_pp(pattern = x, formula = ~1, cov_model = "exponential",
                      r = seq(0.01, 0.25, length.out = 15), nc = 8,
-                     integration_n = 150, seed = 3)
+                     control = lgcp_control(integration_n = 150))
 
   # Loose bounds: a single realisation of a 400-point LGCP.
   expect_gt(fit$theta[["sigma2"]], 0.2)
   expect_lt(fit$theta[["sigma2"]], 1.0)
   expect_gt(fit$theta[["alpha"]], 0.04)
   expect_lt(fit$theta[["alpha"]], 0.25)
+})
+
+test_that("fit_lgcp_pp forwards first-order settings and validates control", {
+  x <- simulate_reference_lgcp()
+  r <- seq(0.01, 0.25, length.out = 10)
+
+  fit <- fit_lgcp_pp(x, ~1, cov_model = "exponential", r = r, nc = 6,
+                     control = list(integration_n = 100))
+  expect_s3_class(fit, "pp_lgcp_fit")
+  expect_identical(fit$settings$integration_n, 100)
+
+  expect_error(
+    fit_lgcp_pp(x, ~1, cov_model = "exponential", r = r, bogus = 1),
+    "Unknown argument"
+  )
+  expect_error(
+    fit_lgcp_pp(x, ~1, cov_model = "exponential", r = r,
+                control = list(bogus = 1)),
+    "Unknown `control` setting"
+  )
+
+  # Previous interface: still accepted, with a warning.
+  expect_warning(
+    old <- fit_lgcp_pp(x, ~1, cov_model = "exponential", r = r, nc = 6,
+                       integration_n = 100),
+    "previous interface"
+  )
+  expect_equal(old$theta, fit$theta)
+})
+
+test_that("a custom covariance function gives the built-in estimates", {
+  # Regression test: with unbounded parameters L-BFGS-B stopped at the
+  # starting values; Nelder-Mead is now used when no bound is finite.
+  skip_on_cran()
+  x <- simulate_reference_lgcp()
+  r <- seq(0.01, 0.25, length.out = 12)
+  builtin <- fit_lgcp_pp(x, ~1, cov_model = "exponential", r = r, nc = 8,
+                         control = lgcp_control(integration_n = 150))
+  custom <- fit_lgcp_pp(
+    x, ~1,
+    cov_model = function(h, params) params[["sigma2"]] * exp(-h / params[["alpha"]]),
+    r = r, nc = 8,
+    control = lgcp_control(start = c(sigma2 = 1, alpha = 0.2), integration_n = 150)
+  )
+
+  expect_false(isTRUE(all.equal(unname(custom$theta), c(1, 0.2))))
+  expect_equal(custom$theta, builtin$theta, tolerance = 0.02)
 })

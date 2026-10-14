@@ -32,7 +32,7 @@ covariates, axis metadata, and window define the observed component of the
 cubature scheme.}
 
 \item{formula}{A one-sided model formula, such as \code{~ x + y} or
-\code{~ s(x, y) + temperature}. Every declared external covariate and mark must
+\code{~ s(x, y) + cov1}. Every declared external covariate and mark must
 occur in the formula. Formula variables may be coordinate names, declared
 marks, external covariates, or numeric columns stored in
 \code{pattern$covariates}.}
@@ -240,19 +240,19 @@ field_data <- expand.grid(
   x = seq(0, 1, length.out = 6),
   y = seq(0, 1, length.out = 6)
 )
-field_data$temperature <- with(field_data, 2 * x + sin(pi * y))
-temperature <- pp_covariate(
+field_data$cov1 <- with(field_data, 2 * x + sin(pi * y))
+cov1 <- pp_covariate(
   data = field_data,
   coords = c("x", "y"),
-  value = "temperature",
+  value = "cov1",
   window = w,
-  name = "temperature"
+  name = "cov1"
 )
 
 fit_cov <- fit_pp(
   pattern = x,
-  formula = ~ x + y + temperature,
-  covariates = list(temperature = temperature),
+  formula = ~ x + y + cov1,
+  covariates = list(cov1 = cov1),
   nc = 8
 )
 
@@ -301,9 +301,9 @@ Wood, S. N. (2017). \emph{Generalized Additive Models: An Introduction with R},
 fitted joint or ground intensities; \code{\link[=K_fit_pp]{K_fit_pp()}} and \code{\link[=residuals_pp]{residuals_pp()}} provide
 second- and first-order diagnostics.
 
-Other Poisson point-process models: 
-\code{\link{pp_cubature}()},
-\code{\link{print.pp_cubature}()},
-\code{\link{print.pp_fit}()}
+Other Poisson point-process models:
+\code{\link[=pp_cubature]{pp_cubature()}},
+\code{\link[=print.pp_cubature]{print.pp_cubature()}},
+\code{\link[=print.pp_fit]{print.pp_fit()}}
 }
 \concept{Poisson point-process models}

@@ -1502,6 +1502,9 @@ print.summary_pp <- function(
     )
   }
 
+  if (!is.null(coord_summary$unit)) {
+    coord_summary$unit[is.na(coord_summary$unit)] <- ""
+  }
   print(coord_summary, row.names = FALSE)
 
   cat("\n")
@@ -2422,7 +2425,7 @@ pp_window <- function(
 
     graphics::title(
       main = spec$name,
-      cex.main = cex_main
+      cex.main = 0.8 * cex_main
     )
 
     return(invisible(NULL))
@@ -2478,8 +2481,8 @@ pp_window <- function(
 
   graphics::title(
     main = spec$name,
-    cex.main = cex_main,
-    font.main = 2
+    cex.main = 0.75 * cex_main,
+    font.main = 1
   )
 
   if (spec$has_missing) {
@@ -2869,7 +2872,7 @@ pp_window <- function(
       mark_name
     ),
     main = paste0(
-      "Joint location-mark display: ",
+      "Location and ",
       mark_name
     ),
     colours = mark_spec$colours,
@@ -3090,7 +3093,7 @@ plot.pp <- function(
           coords = coords,
           bounds = bounds,
           axis_labels = labels,
-          main = paste0("Spatial pattern coloured by ", mark_name),
+          main = paste0("Coloured by ", mark_name),
           colours = spec$colours,
           point_size = point_size,
           point_pch = point_pch,
@@ -4312,16 +4315,16 @@ plot.pp <- function(
 #'   x = seq(0, 1, length.out = 5),
 #'   y = seq(0, 1, length.out = 5)
 #' )
-#' field_data$temperature <- with(field_data, 15 + 3 * x - 2 * y)
+#' field_data$cov1 <- with(field_data, 15 + 3 * x - 2 * y)
 #'
-#' temperature <- pp_covariate(
+#' cov1 <- pp_covariate(
 #'   data = field_data,
 #'   coords = c("x", "y"),
-#'   value = "temperature",
+#'   value = "cov1",
 #'   window = w,
-#'   name = "temperature"
+#'   name = "cov1"
 #' )
-#' temperature
+#' cov1
 #'
 #' # A geometric support used to calculate nearest-source distances
 #' stations <- pp_covariate(
@@ -5100,6 +5103,9 @@ print.summary_pp_covariate <- function(x, digits = 4, ...) {
     )
   }
 
+  if (!is.null(coordinate_summary$unit)) {
+    coordinate_summary$unit[is.na(coordinate_summary$unit)] <- ""
+  }
   print(coordinate_summary, row.names = FALSE)
 
   cat("\nSupport bounding box:\n")
@@ -5430,14 +5436,14 @@ evaluate_covariate <- function(
 #'   x = seq(0, 1, length.out = 5),
 #'   y = seq(0, 1, length.out = 5)
 #' )
-#' support$temperature <- with(support, 10 + x - 2 * y)
+#' support$cov1 <- with(support, 10 + x - 2 * y)
 #'
-#' temperature <- pp_covariate(
+#' cov1 <- pp_covariate(
 #'   support,
 #'   coords = c("x", "y"),
-#'   value = "temperature",
+#'   value = "cov1",
 #'   window = w,
-#'   name = "temperature"
+#'   name = "cov1"
 #' )
 #' stations <- pp_covariate(
 #'   data.frame(x = c(0.2, 0.8), y = c(0.25, 0.75)),
@@ -5449,16 +5455,16 @@ evaluate_covariate <- function(
 #' target_grid <- pp_grid(w, n = 4)
 #' values <- extract_covariates(
 #'   covariates = list(
-#'     temperature = temperature,
+#'     cov1 = cov1,
 #'     station_distance = stations
 #'   ),
 #'   at = target_grid,
 #'   methods = c(
-#'     temperature = "idw",
+#'     cov1 = "idw",
 #'     station_distance = "distance_min"
 #'   ),
 #'   method_args = list(
-#'     temperature = list(p = 2, k = 4)
+#'     cov1 = list(p = 2, k = 4)
 #'   )
 #' )
 #' head(values)
@@ -7319,7 +7325,8 @@ print.pp_window <- function(x, digits = 4L, ...) {
 
   cat("Hypervolume: ", format(signif(x$hypervolume, digits)), "\n", sep = "")
 
-  if (!is.null(x$time_info) && !is.null(x$time_info$origin)) {
+  origin <- if (is.null(x$time_info)) NULL else x$time_info$origin
+  if (!is.null(origin) && !(is.numeric(origin) && isTRUE(all(origin == 0)))) {
     cat("Time origin: ", format(x$time_info$origin), "\n", sep = "")
   }
 

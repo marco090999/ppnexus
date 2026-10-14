@@ -86,12 +86,12 @@ plot(envelope, what = "residual")
 \seealso{
 \code{\link[=envelope_pp]{envelope_pp()}}, \code{\link[=diagnose_pp]{diagnose_pp()}}, and \code{\link[=plot.pp_K]{plot.pp_K()}}.
 
-Other second-order diagnostics: 
-\code{\link{K_fit_pp}()},
-\code{\link{K_pp}()},
-\code{\link{Klocal_pp}()},
-\code{\link{diagnose_pp}()},
-\code{\link{envelope_pp}()},
-\code{\link{print.pp_K}()}
+Other second-order diagnostics:
+\code{\link[=K_fit_pp]{K_fit_pp()}},
+\code{\link[=K_pp]{K_pp()}},
+\code{\link[=Klocal_pp]{Klocal_pp()}},
+\code{\link[=diagnose_pp]{diagnose_pp()}},
+\code{\link[=envelope_pp]{envelope_pp()}},
+\code{\link[=print.pp_K]{print.pp_K()}}
 }
 \concept{second-order diagnostics}

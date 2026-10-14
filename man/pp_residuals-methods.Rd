@@ -38,7 +38,7 @@
 \item{digits}{Number of significant digits used when printing.}
 
 \item{...}{Additional arguments. Plotting arguments are passed to
-\code{\link[graphics:plot.default]{graphics::plot()}} or \code{\link[graphics:image]{graphics::image()}}; printing methods ignore them.}
+\code{\link[graphics:plot]{graphics::plot()}} or \code{\link[graphics:image]{graphics::image()}}; printing methods ignore them.}
 
 \item{object}{A \code{pp_residuals} object to summarise.}
 
@@ -118,14 +118,14 @@ plot(res, what = "expected", robust = FALSE, show_points = TRUE)
 \seealso{
 \code{\link[=residuals_pp]{residuals_pp()}}, \code{\link[=residual_profile_pp]{residual_profile_pp()}}.
 
-Other first-order point-process diagnostics: 
-\code{\link{diagnose_first_order_pp}()},
-\code{\link{envelope_residual_pp}()},
-\code{\link{integrate_pp_fit}()},
-\code{\link{print.pp_residual_envelope}()},
-\code{\link{print.pp_residual_profile}()},
-\code{\link{residual_grid_pp}()},
-\code{\link{residual_profile_pp}()},
-\code{\link{residuals_pp}()}
+Other first-order point-process diagnostics:
+\code{\link[=diagnose_first_order_pp]{diagnose_first_order_pp()}},
+\code{\link[=envelope_residual_pp]{envelope_residual_pp()}},
+\code{\link[=integrate_pp_fit]{integrate_pp_fit()}},
+\code{\link[=print.pp_residual_envelope]{print.pp_residual_envelope()}},
+\code{\link[=print.pp_residual_profile]{print.pp_residual_profile()}},
+\code{\link[=residual_grid_pp]{residual_grid_pp()}},
+\code{\link[=residual_profile_pp]{residual_profile_pp()}},
+\code{\link[=residuals_pp]{residuals_pp()}}
 }
 \concept{first-order point-process diagnostics}

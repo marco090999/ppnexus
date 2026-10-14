@@ -174,8 +174,7 @@ fit <- fit_lgcp_pp(
   cov_model = "exponential",
   r = seq(0.01, 0.25, length.out = 15),
   nc = 10,
-  integration_n = 150,
-  seed = 102
+  control = lgcp_control(integration_n = 150)
 )
 
 # Small nsim only for an executable example. Use many more in analysis.

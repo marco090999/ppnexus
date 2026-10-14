@@ -49,7 +49,7 @@ diagnose_first_order_lgcp_pp(
 \item{variable}{Profile variable(s), or \code{"all"}, in
 \code{diagnose_first_order_lgcp_pp()}. Coordinate axes and fitted numeric
 covariates supported by \code{residual_profile_pp()} can be used. In the plot
-method, supply one retained profile variable; the first is used by default.}
+method, supply retained profile variable(s); by default all are plotted.}
 
 \item{nsim}{Number of primary LGCP simulations.}
 
@@ -187,8 +187,7 @@ fit <- fit_lgcp_pp(
   cov_model = "exponential",
   r = seq(0.01, 0.25, length.out = 15),
   nc = 10,
-  integration_n = 150,
-  seed = 202
+  control = lgcp_control(integration_n = 150)
 )
 
 # Small nsim only for an executable example. Use many more in analysis.

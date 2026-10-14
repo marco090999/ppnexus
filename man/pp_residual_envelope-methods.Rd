@@ -37,8 +37,9 @@ summarise.}
 
 \item{digits}{Number of significant digits used when printing.}
 
-\item{variable}{Optional name of the profile variable to display. It defaults
-to the first available variable.}
+\item{variable}{Optional name(s) of the profile variable(s) to display. By
+default every variable retained in the diagnostic is plotted, one figure
+per variable.}
 
 \item{what}{\code{"envelope"} or \code{"profile"}.}
 }
@@ -94,14 +95,14 @@ plot(diagnostic, variable = "x", what = "profile")
 \code{\link[=envelope_residual_pp]{envelope_residual_pp()}}, \code{\link[=diagnose_first_order_pp]{diagnose_first_order_pp()}},
 \code{\link[=residual_profile_pp]{residual_profile_pp()}}.
 
-Other first-order point-process diagnostics: 
-\code{\link{diagnose_first_order_pp}()},
-\code{\link{envelope_residual_pp}()},
-\code{\link{integrate_pp_fit}()},
-\code{\link{print.pp_residual_profile}()},
-\code{\link{print.pp_residuals}()},
-\code{\link{residual_grid_pp}()},
-\code{\link{residual_profile_pp}()},
-\code{\link{residuals_pp}()}
+Other first-order point-process diagnostics:
+\code{\link[=diagnose_first_order_pp]{diagnose_first_order_pp()}},
+\code{\link[=envelope_residual_pp]{envelope_residual_pp()}},
+\code{\link[=integrate_pp_fit]{integrate_pp_fit()}},
+\code{\link[=print.pp_residual_profile]{print.pp_residual_profile()}},
+\code{\link[=print.pp_residuals]{print.pp_residuals()}},
+\code{\link[=residual_grid_pp]{residual_grid_pp()}},
+\code{\link[=residual_profile_pp]{residual_profile_pp()}},
+\code{\link[=residuals_pp]{residuals_pp()}}
 }
 \concept{first-order point-process diagnostics}

@@ -12,8 +12,21 @@ multidimensional spatial and spatio-temporal point processes, including
 Poisson, marked Poisson, functional-covariate, log-Gaussian Cox, and ETAS
 models.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/marco090999/ppnexus}
+  \item Report bugs at \url{https://github.com/marco090999/ppnexus/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Marco Tarantino \email{marco.tarantino01@unipa.it} [copyright holder]
+
+Authors:
+\itemize{
+  \item Marco Tarantino \email{marco.tarantino01@unipa.it} [copyright holder]
+}
 
 Other contributors:
 \itemize{

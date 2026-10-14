@@ -165,14 +165,14 @@ Statistical Society: Series B}, 79, 381--404.
 \code{\link[=residual_profile_pp]{residual_profile_pp()}}, \code{\link[=simulate_pp_fit]{simulate_pp_fit()}}, \code{\link[=refit_pp]{refit_pp()}},
 \code{\link[=diagnose_first_order_pp]{diagnose_first_order_pp()}}, \code{\link[GET:global_envelope_test]{GET::global_envelope_test()}}.
 
-Other first-order point-process diagnostics: 
-\code{\link{diagnose_first_order_pp}()},
-\code{\link{integrate_pp_fit}()},
-\code{\link{print.pp_residual_envelope}()},
-\code{\link{print.pp_residual_profile}()},
-\code{\link{print.pp_residuals}()},
-\code{\link{residual_grid_pp}()},
-\code{\link{residual_profile_pp}()},
-\code{\link{residuals_pp}()}
+Other first-order point-process diagnostics:
+\code{\link[=diagnose_first_order_pp]{diagnose_first_order_pp()}},
+\code{\link[=integrate_pp_fit]{integrate_pp_fit()}},
+\code{\link[=print.pp_residual_envelope]{print.pp_residual_envelope()}},
+\code{\link[=print.pp_residual_profile]{print.pp_residual_profile()}},
+\code{\link[=print.pp_residuals]{print.pp_residuals()}},
+\code{\link[=residual_grid_pp]{residual_grid_pp()}},
+\code{\link[=residual_profile_pp]{residual_profile_pp()}},
+\code{\link[=residuals_pp]{residuals_pp()}}
 }
 \concept{first-order point-process diagnostics}
