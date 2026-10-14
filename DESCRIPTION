@@ -49,3 +49,5 @@ Suggests:
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.0.0
+URL: https://github.com/marco090999/ppnexus
+BugReports: https://github.com/marco090999/ppnexus/issues
