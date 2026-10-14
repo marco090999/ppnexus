@@ -1,0 +1,609 @@
+---
+title: "Getting started with ppnexus"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Getting started with ppnexus}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 6,
+  fig.height = 4.5,
+  out.width = "85%",
+  fig.align = "center"
+)
+```
+
+**ppnexus** is built around one idea: the first-order intensity of a point
+process should be able to use *all* the information that is available about
+where, and when, events occur. Its core is a Poisson point-process model
+fitted in a domain whose dimension $d$ is chosen by the user (two- or
+three-dimensional space, space-time, and continuous marks treated as
+additional coordinates of the domain). The log-intensity of this model can
+combine, in a single formula:
+
+* the **coordinates** of the domain;
+* **spatial and spatio-temporal covariates** observed on arbitrary supports,
+  and interpolated wherever the model needs them;
+* **functional covariates**, that is, curves observed at each support point,
+  entered through their functional principal-component scores;
+* **categorical and continuous marks**, the latter as extra dimensions of the
+  domain;
+* **semiparametric terms**: smooth functions of any of the above, estimated
+  with **mgcv**.
+
+The aim is to widen the kind of information that can enter a Poisson model,
+so as to obtain a more accurate first-order intensity. This enriched Poisson
+model is then used as the **first-order building block of more complex
+models** that need an estimate of the first-order intensity. ppnexus
+currently provides two such extensions:
+
+* **log-Gaussian Cox processes**, whose first-order trend is the enriched
+  Poisson model and whose second-order structure is estimated given that
+  trend;
+* **ETAS models with a parametric background**, whose background rate is the
+  enriched Poisson model, fitted jointly with the triggering component.
+
+In both cases the first-order part accepts exactly the same formulas,
+covariates, marks and smooth terms as the Poisson model. The same set of
+objects and functions is used throughout:
+
+| Step | Main functions |
+|---|---|
+| Describe the domain and the data | `pp_window()`, `pp_pattern()`, `pp_covariate()`, `pp_grid()` |
+| Simulate | `simulate_pp()`, `simulate_lgcp_pp()`, `simulate_etas_pp()` |
+| Fit | `fit_pp()`, `fit_lgcp_pp()`, `fit_etas_pp()` |
+| Use a fitted model | `predict_pp_fit()`, `integrate_pp_fit()`, `simulate_pp_fit()`, `refit_pp()` |
+| Diagnose | `residuals_pp()`, `diagnose_first_order_pp()`, `K_fit_pp()`, `envelope_pp()` |
+
+This vignette first builds the enriched first-order intensity step by step,
+on a simulated Poisson pattern: coordinates, covariates, smooth terms,
+diagnostics, marks, functional covariates, and domains of higher dimension.
+It then shows how the same first-order model is carried over to
+log-Gaussian Cox processes and ETAS models, and why its accuracy matters
+there.
+
+```{r load}
+library(ppnexus)
+```
+
+# 1. Windows and point patterns
+
+Every analysis starts from an observation window. A window is a
+hyper-rectangle defined by lower and upper bounds; axes are named, and each
+axis has a role (`"space"` or `"time"`) and an optional unit.
+
+```{r window}
+w <- pp_window(
+  lower = c(x = 0, y = 0),
+  upper = c(x = 2, y = 1),
+  axis_units = c(x = "km", y = "km")
+)
+w
+```
+
+Point patterns are created from a data frame by declaring which columns are
+coordinates and which are marks.
+
+```{r pattern}
+set.seed(1)
+events <- data.frame(x = runif(30, 0, 2), y = runif(30))
+pattern <- pp_pattern(events, coords = c("x", "y"), window = w)
+summary(pattern)
+```
+
+# 2. Simulating an inhomogeneous Poisson process
+
+`simulate_pp()` simulates by thinning. The log-intensity is supplied as a
+function of the coordinates. Here the intensity is
+$\lambda(x, y) = \exp(5 + 0.8\,x - y)$, and we provide its maximum over the
+window as an exact upper bound for thinning.
+
+```{r simulate}
+log_lambda <- function(coords) 5 + 0.8 * coords$x - coords$y
+
+x <- simulate_pp(
+  window = w,
+  log_intensity = log_lambda,
+  bound = "user",
+  lambda_upper = exp(5 + 0.8 * 2),
+  seed = 42
+)
+x
+plot(x)
+```
+
+The expected number of points is the integral of the intensity over the
+window, which here has a closed form.
+
+```{r expected-count}
+expected_n <- exp(5) * (exp(0.8 * 2) - 1) / 0.8 * (1 - exp(-1))
+c(expected = expected_n, observed = nrow(x$coords))
+```
+
+# 3. Covariates for the first-order intensity
+
+The first way to enrich the intensity beyond the coordinates is through
+covariates. Covariates are fields observed on a set of support points, which
+need not coincide with the events or with a regular grid. They are
+interpolated wherever the model needs them: at the events, at the cubature
+points, and at prediction locations. Here we build a gridded "elevation"
+field and a geometric covariate defined as the distance to the nearest of
+three "sources".
+
+```{r covariates}
+grid_data <- expand.grid(x = seq(0, 2, by = 0.1), y = seq(0, 1, by = 0.1))
+grid_data$elevation <- with(grid_data, sin(pi * x / 2) + 0.5 * y)
+
+elevation <- pp_covariate(
+  grid_data,
+  coords = c("x", "y"),
+  value = "elevation",
+  window = w,
+  name = "elevation"
+)
+
+sources <- pp_covariate(
+  data.frame(x = c(0.3, 1.0, 1.7), y = c(0.2, 0.8, 0.3)),
+  coords = c("x", "y"),
+  value = NULL,
+  window = w,
+  name = "distance"
+)
+
+head(extract_covariates(
+  covariates = list(elevation = elevation, distance = sources),
+  at = x
+))
+```
+
+# 4. Fitting the first-order intensity: the multidimensional Poisson model
+
+`fit_pp()` is the engine of the package: every model in ppnexus estimates its
+first-order intensity with it. It maximises a cubature approximation of the
+Poisson likelihood over the whole $d$-dimensional domain (Berman and Turner,
+1992), fitted as a weighted Poisson GAM with **mgcv**. Formulas can
+therefore mix coordinates, covariates, marks and smooth terms. The argument
+`nc` sets the number of cubature cells along each axis.
+
+```{r fit}
+fit <- fit_pp(x, formula = ~ x + y, nc = c(x = 12, y = 6))
+fit
+```
+
+The estimates are close to the true values $(5, 0.8, -1)$. Covariates enter
+the formula by name:
+
+```{r fit-cov}
+fit_cov <- fit_pp(
+  x,
+  formula = ~ elevation + distance,
+  covariates = list(elevation = elevation, distance = sources),
+  nc = c(x = 12, y = 6)
+)
+c(coordinates = fit$aic, covariates = fit_cov$aic)
+```
+
+The model with the true coordinate terms has the lower AIC, as expected.
+
+Because the fit is a GAM, parametric and semiparametric terms can be freely
+combined; here the dependence on `y` is left unspecified and estimated as a
+smooth function.
+
+```{r fit-smooth}
+fit_smooth <- fit_pp(x, formula = ~ x + s(y, k = 5), nc = c(x = 12, y = 6))
+summary(fit_smooth$gam)$s.table
+c(parametric = fit$aic, semiparametric = fit_smooth$aic)
+```
+
+The penalised smooth shrinks to a straight line (effective degrees of
+freedom close to 1), consistent with the linear effect used in the
+simulation, and the AIC is unchanged: the semiparametric term adds
+flexibility only when the data support it.
+
+## Predictions and integrals
+
+`predict_pp_fit()` evaluates the fitted intensity at arbitrary locations, and
+`integrate_pp_fit()` integrates it over the window or over a sub-region.
+
+```{r predict}
+locations <- data.frame(x = c(0.5, 1.5), y = c(0.5, 0.5))
+predict_pp_fit(fit, at = locations, type = "ground")
+exp(log_lambda(locations))
+
+integrate_pp_fit(fit, nc = 20)
+
+west_half <- rbind(lower = c(x = 0, y = 0), upper = c(x = 1, y = 1))
+integrate_pp_fit(fit, region = west_half, nc = c(x = 10, y = 10))
+```
+
+# 5. Diagnosing the first-order intensity
+
+The diagnostics are designed to check whether the first-order intensity has
+captured the available information, and whether any structure is left for a
+second-order model.
+
+## First-order residuals
+
+`residuals_pp()` compares observed and expected counts on a regular grid of
+cells, returning raw, Pearson and deviance residuals.
+
+```{r residuals}
+res <- residuals_pp(fit, type = "pearson", nc = c(x = 8, y = 4))
+summary(res)
+plot(res, show_points = TRUE)
+```
+
+`diagnose_first_order_pp()` turns cumulative residual profiles along each
+coordinate into a global envelope test (Myllymäki et al., 2017), calibrated
+by simulating from the fitted model and refitting it. Small values of `nsim`
+are used here only to keep the vignette fast.
+
+```{r first-order-diagnostic}
+first_order <- diagnose_first_order_pp(
+  fit,
+  nsim = 39,
+  simulation_args = list(bound_n = 8),
+  seed = 1,
+  verbose = FALSE
+)
+summary(first_order)
+plot(first_order)
+```
+
+## Second-order structure
+
+The inhomogeneous K-function weighted by the fitted intensity
+(Baddeley et al., 2000) checks whether the points interact once the trend
+has been accounted for. For a Poisson process it equals $\pi r^2$ in two
+dimensions.
+
+```{r k-fit}
+k <- K_fit_pp(fit, r = seq(0, 0.25, length.out = 15))
+plot(k, what = "residual")
+```
+
+`envelope_pp()` (alias `diagnose_pp()`) wraps this curve in a global
+envelope.
+
+```{r envelope}
+envelope <- envelope_pp(
+  fit,
+  nsim = 39,
+  r = seq(0, 0.25, length.out = 15),
+  simulation_args = list(bound_n = 8),
+  seed = 2,
+  verbose = FALSE
+)
+summary(envelope)
+plot(envelope)
+```
+
+# 6. Marks as additional dimensions of the first-order intensity
+
+Marks are a further source of information for the first-order intensity.
+They can be *categorical* or *continuous*. A continuous mark declared with
+`mode = "joint"` becomes an extra coordinate of the domain, so the model
+describes the joint intensity of locations and marks, and can relate the
+mark to coordinates and covariates through the same formula.
+
+```{r marks}
+set.seed(3)
+n <- 150
+quakes <- data.frame(
+  x = runif(n, 0, 2),
+  y = runif(n),
+  magnitude = 2 + rexp(n, rate = 2),
+  type = factor(sample(c("shallow", "deep"), n, replace = TRUE, prob = c(2, 1)))
+)
+quakes <- quakes[quakes$magnitude <= 5, ]
+
+marked <- pp_pattern(
+  quakes,
+  coords = c("x", "y"),
+  marks = c("magnitude", "type"),
+  window = w
+)
+
+fit_marked <- fit_pp(
+  marked,
+  formula = ~ magnitude + type,
+  continuous_marks = list(magnitude = list(mode = "joint", bounds = c(2, 5))),
+  categorical_marks = "type",
+  nc = c(x = 6, y = 3, magnitude = 24)
+)
+coef(fit_marked$gam)
+```
+
+The magnitude coefficient estimates $-b \log 10$ in the Gutenberg–Richter
+law; the magnitudes were simulated with rate 2, so the true value is $-2$.
+Because the mark is a coordinate of the domain, the number of cubature cells
+along it (`nc["magnitude"]`) must be large enough to resolve the mark
+density: an exponential decay over three magnitude units needs a finer grid
+than a smooth spatial trend.
+
+The ground intensity, obtained by integrating out the marks, is available
+with `type = "ground"`. Since this model has no spatial terms it should equal
+the number of events per unit area:
+
+```{r ground}
+predict_pp_fit(fit_marked, at = data.frame(x = 1, y = 0.5), type = "ground")
+nrow(quakes) / w$hypervolume
+```
+
+# 7. Functional covariates in the first-order intensity
+
+Sometimes the information available at each support point is a whole curve
+rather than a number, for example a spectrum, an extinction profile along the
+line of sight, or a vertical profile. Summarising such a curve by a single
+number discards information that may drive the intensity.
+`pp_functional_covariate()` computes a functional principal-component
+decomposition of the curves and exposes each score as an ordinary covariate
+field. After fitting, `functional_coefficient()` maps the score coefficients
+back to a coefficient function $\beta(u)$. Functional scores can be
+combined with coordinates, scalar covariates, marks and smooth terms in the
+same formula.
+
+```{r functional}
+set.seed(4)
+support <- expand.grid(x = seq(0.05, 1.95, length.out = 12),
+                       y = seq(0.05, 0.95, length.out = 6))
+u <- seq(0, 1, length.out = 41)
+curves <- outer(sin(pi * support$x / 2), sqrt(2) * sin(pi * u)) +
+  outer(support$y - 0.5, sqrt(2) * cos(pi * u)) +
+  matrix(rnorm(nrow(support) * length(u), sd = 0.05), nrow(support))
+
+profile <- pp_functional_covariate(
+  support, curves, grid = u,
+  coords = c("x", "y"),
+  window = w,
+  name = "profile",
+  ncomp = 2
+)
+profile$pve
+
+fields <- as_pp_covariates(profile)
+fit_functional <- fit_pp(
+  x,
+  formula = stats::reformulate(names(fields)),
+  covariates = fields,
+  nc = c(x = 12, y = 6)
+)
+
+beta <- functional_coefficient(fit_functional, profile)
+plot(beta)
+```
+
+# 8. Three-dimensional and space-time first-order intensities
+
+Nothing in the workflow is specific to two dimensions: the enriched
+first-order model, with all the terms shown above, is fitted in a domain of
+any dimension. The same functions work in three-dimensional space ...
+
+```{r three-d}
+w3 <- pp_window(lower = c(x = 0, y = 0, z = 0), upper = c(x = 1, y = 1, z = 1))
+x3 <- simulate_pp(
+  w3,
+  log_intensity = function(coords) log(400) - 1.5 * coords$z,
+  bound = "user",
+  lambda_upper = 400,
+  seed = 5
+)
+fit3 <- fit_pp(x3, ~ z, nc = 5)
+coef(fit3$gam)
+
+k3 <- K_fit_pp(fit3, r = seq(0, 0.2, length.out = 10))
+round(cbind(r = k3$r, K = k3$Khat, poisson = k3$Ktheo), 5)
+```
+
+... and in space-time, where the K-function depends on a spatial lag `r`
+and a temporal lag `u` (Gabriel and Diggle, 2009).
+
+```{r space-time}
+wst <- pp_window(
+  lower = c(x = 0, y = 0, time = 0),
+  upper = c(x = 1, y = 1, time = 30),
+  axis_roles = c(x = "space", y = "space", time = "time"),
+  axis_units = c(x = "km", y = "km", time = "days")
+)
+xst <- simulate_pp(
+  wst,
+  log_intensity = function(coords) log(10) + 0.03 * coords$time,
+  bound = "user",
+  lambda_upper = 10 * exp(0.9),
+  seed = 6
+)
+fitst <- fit_pp(xst, ~ time, nc = c(x = 5, y = 5, time = 10))
+coef(fitst$gam)
+```
+
+# 9. Log-Gaussian Cox processes with an enriched first-order intensity
+
+A log-Gaussian Cox process (Møller et al., 1998) has intensity
+$\Lambda(\mathbf{s}) = \lambda(\mathbf{s}) \exp\{Z(\mathbf{s})\}$, where
+$\lambda$ is the first-order trend and $Z$ a latent Gaussian field. In
+ppnexus the trend $\lambda$ is the enriched Poisson model of the previous
+sections: `fit_lgcp_pp()` fits it with `fit_pp()`, so it accepts
+coordinates, spatial and spatio-temporal covariates, functional covariates,
+marks and smooth terms. The covariance parameters of $Z$ are then estimated
+by minimum contrast on the inhomogeneous K-function, which is weighted by the
+fitted trend. The model works in any dimension.
+
+The quality of the first-order trend directly affects the second-order
+estimates: structure that the trend fails to capture is absorbed by the
+latent field. We simulate an LGCP whose trend depends on both coordinates,
+the second one non-linearly. Because the latent field is random, the
+thinning bound is estimated numerically on a grid; `simulate_lgcp_pp()` warns
+about this and restarts the simulation if the bound turns out to be
+exceeded.
+
+```{r lgcp-simulate, warning = FALSE}
+unit <- pp_window(lower = c(x = 0, y = 0), upper = c(x = 1, y = 1))
+
+lgcp <- simulate_lgcp_pp(
+  window = unit,
+  log_intensity = function(coords) {
+    log(150) + 2 * coords$x + 1.5 * sin(2 * pi * coords$y)
+  },
+  cov_model = "exponential",
+  covariance_params = c(sigma2 = 0.5, alpha = 0.05),
+  field_n = 25,
+  output = "pattern",
+  seed = 21
+)
+```
+
+We fit the LGCP twice: with a constant trend, as in a classical stationary
+analysis, and with an enriched trend containing a linear term in `x` and a
+smooth term in `y`.
+
+```{r lgcp-fit}
+r <- seq(0.01, 0.2, length.out = 15)
+
+fit_lgcp_constant <- fit_lgcp_pp(
+  lgcp, formula = ~ 1,
+  cov_model = "exponential", r = r, nc = 8, integration_n = 150, seed = 8
+)
+fit_lgcp <- fit_lgcp_pp(
+  lgcp, formula = ~ x + s(y, k = 6),
+  cov_model = "exponential", r = r, nc = 8, integration_n = 150, seed = 8
+)
+
+round(rbind(
+  true = c(sigma2 = 0.5, alpha = 0.05),
+  constant_trend = fit_lgcp_constant$theta,
+  enriched_trend = fit_lgcp$theta
+), 3)
+```
+
+With a constant trend the systematic variation of the intensity is
+interpreted as clustering: the variance and, above all, the range of the
+latent field are overestimated. With the enriched first-order intensity the
+covariance parameters are close to their true values.
+
+```{r lgcp-plot}
+fit_lgcp
+plot(fit_lgcp)
+```
+
+`diagnose_lgcp_pp()` and `diagnose_first_order_lgcp_pp()` provide envelope
+tests calibrated under the fitted LGCP rather than under a Poisson process.
+
+# 10. ETAS models with an enriched parametric background
+
+In an epidemic-type aftershock sequence (ETAS) model the conditional
+intensity is the sum of a background rate and a triggering component
+generated by past events. Classical implementations estimate the background
+either as a constant or nonparametrically, by kernel smoothing of the
+declustered events. In ppnexus the background is the **enriched Poisson
+model**: `fit_etas_pp()` alternates between fitting the triggering parameters
+by maximum likelihood and fitting the background with `fit_pp()`, weighting
+each event by its posterior probability of being a background event
+(stochastic declustering; Zhuang et al., 2002). The background formula
+`formula.bg` therefore accepts coordinates, covariates, marks, functional
+covariates and smooth terms, and its effects are estimated with standard
+errors and can be interpreted.
+
+`simulate_etas_pp()` generates catalogues by branching. Here the background
+rate increases with `x` and decreases with `y`, with coefficients 0.6 and
+-0.4 on the centred coordinates.
+
+```{r etas-simulate}
+true_params <- c(mu = 0.5, k0 = 1.5e-5, c = 0.05, p = 1.2,
+                 gamma = 0, d = 0.001, q = 2)
+
+etas_sim <- simulate_etas_pp(
+  params = true_params,
+  m0 = 2.5, b = 1,
+  tmin = 0, t.lag = 500,
+  long.range = c(0, 1), lat.range = c(0, 1),
+  longlat.to.km = FALSE,
+  n_support_obs = 50, mult_support = 1,
+  bg_lp_type = "linear",
+  bg_lp_coefs = c(x_std = 0.6, y_std = -0.4),
+  trig_lp_coefs = c(m_rel = 0.3),
+  seed = 19
+)
+etas_sim
+```
+
+The background is fitted on the working spatial plane, whose coordinates are
+called `x` and `y`:
+
+```{r etas-fit}
+etas_fit <- fit_etas_pp(
+  etas_sim$catalog,
+  magn.threshold = 2.5,
+  formula.bg = ~ x + y,
+  ndeclust = 5,
+  iterlim = 100,
+  verbose = FALSE,
+  trace = FALSE,
+  verbose.convergence = FALSE
+)
+etas_fit
+```
+
+The background effects are recovered, together with their uncertainty:
+
+```{r etas-background}
+summary(etas_fit$background_fit$gam)$p.table[c("x", "y"), 1:2]
+```
+
+and so are the triggering parameters:
+
+```{r etas-compare}
+shown <- c("mu", "c", "p", "d", "q")
+round(rbind(
+  true = true_params[shown],
+  estimate = etas_fit$parameters[shown],
+  std_error = etas_fit$standard_errors[shown]
+), 4)
+```
+
+The spatial parameters are identifiable only when the spatial triggering
+kernel, whose scale is about $\sqrt{d}$, is small compared with the
+observation window. With $d = 0.001$ the kernel scale is about 0.03 on the
+unit square; with a kernel as wide as the window, most offspring fall
+outside it and $d$ and $q$ become confounded.
+
+Finally, `decluster_etas_pp()` returns the posterior probability that each
+event belongs to the background:
+
+```{r etas-decluster}
+declustered <- decluster_etas_pp(etas_fit)
+head(declustered[, c("time", "magnitude", "background_probability")])
+```
+
+# References
+
+Baddeley, A. J., Møller, J. and Waagepetersen, R. (2000). Non- and
+semi-parametric estimation of interaction in inhomogeneous point patterns.
+*Statistica Neerlandica*, 54, 329–350.
+
+Berman, M. and Turner, T. R. (1992). Approximating point process likelihoods
+with GLIM. *Journal of the Royal Statistical Society, Series C*, 41, 31–38.
+
+Chiodi, M. and Adelfio, G. (2017). Mixed non-parametric and parametric
+estimation techniques in R package etasFLP for earthquakes' description.
+*Journal of Statistical Software*, 76(3), 1–29.
+
+Gabriel, E. and Diggle, P. J. (2009). Second-order analysis of inhomogeneous
+spatio-temporal point process data. *Statistica Neerlandica*, 63, 43–51.
+
+Møller, J., Syversveen, A. R. and Waagepetersen, R. P. (1998). Log Gaussian
+Cox processes. *Scandinavian Journal of Statistics*, 25, 451–482.
+
+Myllymäki, M., Mrkvička, T., Grabarnik, P., Seijo, H. and Hahn, U. (2017).
+Global envelope tests for spatial processes. *Journal of the Royal
+Statistical Society, Series B*, 79, 381–404.
+
+Zhuang, J., Ogata, Y. and Vere-Jones, D. (2002). Stochastic declustering of
+space-time earthquake occurrences. *Journal of the American Statistical
+Association*, 97, 369–380.

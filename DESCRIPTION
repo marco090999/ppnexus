@@ -1,0 +1,51 @@
+Package: ppnexus
+Type: Package
+Title: Simulation, Modelling and Diagnostics for Multidimensional Point Processes
+Version: 0.1.0
+Authors@R: c(
+    person(
+        given = "Marco",
+        family = "Tarantino",
+        email = "marco.tarantino01@unipa.it",
+        role = c("aut", "cre", "cph")
+    ),
+    person(
+        given = "Marcello",
+        family = "Chiodi",
+        role = c("ctb", "cph"),
+        comment = "Author of the original Fortran ETAS triggering routine from etasFLP"
+    ),
+    person(
+        given = "Giada",
+        family = "Adelfio",
+        role = c("ctb", "cph"),
+        comment = "Co-author of etasFLP"
+    )
+    )
+Description: Tools for simulation, estimation, diagnostics, and exploratory
+    analysis of multidimensional spatial and spatio-temporal point processes.
+    The package supports Poisson and marked Poisson point processes,
+    scalar and functional covariates, covariate-based intensity models,
+    multidimensional inhomogeneous K-function estimators, residual and
+    global-envelope diagnostics, log-Gaussian Cox processes, and
+    epidemic-type aftershock sequence models with parametric Poisson
+    background intensities.
+License: GPL (>= 2)
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Imports:
+    GET,
+    graphics,
+    grDevices,
+    mgcv,
+    plot3D,
+    stats,
+    utils
+Suggests:
+    ggplot2,
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+Config/roxygen2/version: 8.0.0
