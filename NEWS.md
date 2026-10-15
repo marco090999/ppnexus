@@ -16,6 +16,30 @@
 * `fit_etas_pp()` warns when standard errors cannot be computed because the
   Hessian is singular (typically a catalogue with little triggering).
 
+## Minimum contrast and boundary events (found with the JSS simulations)
+
+* `fit_lgcp_pp()`: the minimum-contrast criterion is now scaled to order one
+  before optimisation. Unscaled, it is of order 1e-6 and L-BFGS-B stopped
+  after one or two steps (relative reduction measured against `max(|f|, 1)`),
+  often at the starting values.
+* `fit_lgcp_pp()`: new `lgcp_control(multistart = TRUE)` evaluates the
+  criterion on a coarse grid of starting values, optimises from the best
+  three, restarts once from the best solution and keeps the smallest
+  criterion. Set `multistart = FALSE` for a single run from `start`.
+* `fit_lgcp_pp()` with a spatio-temporal covariance (`"separable_exponential"`,
+  `"gneiting"`) failed with the default bounds: the default start and bounds
+  of `alpha_time` inherited the name of the time axis and became `NA`.
+* `simulate_lgcp_pp()` in space-time measures the distances used to
+  interpolate the latent field in grid steps, so it no longer warns about
+  a missing `axis_scale` that the user cannot set.
+* `fit_etas_pp()` accepts events on the boundary of the spatial window (for
+  example a window equal to the range of the epicentres, the etasFLP
+  convention). The radii of the polar integration of the spatial kernel are
+  computed in closed form for the rectangular window; they agree with
+  `etasFLP::region.P()` to 1e-12 for interior events.
+* `summary()` of `envelope_pp()` results reports the global envelope test
+  p-value.
+
 ## Further bug fixes
 
 * `fit_lgcp_pp()` with a custom covariance function returned the starting

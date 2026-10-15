@@ -75,12 +75,12 @@ plot(fc, type = "components")
 
 }
 \seealso{
-Other functional covariates:
-\code{\link[=as_pp_covariates]{as_pp_covariates()}},
-\code{\link[=functional_coefficient]{functional_coefficient()}},
-\code{\link[=functional_scores]{functional_scores()}},
-\code{\link[=pp_functional_covariate]{pp_functional_covariate()}},
-\code{\link[=print.pp_functional_coefficient]{print.pp_functional_coefficient()}},
-\code{\link[=project_functional_scores]{project_functional_scores()}}
+Other functional covariates: 
+\code{\link{as_pp_covariates}()},
+\code{\link{functional_coefficient}()},
+\code{\link{functional_scores}()},
+\code{\link{pp_functional_covariate}()},
+\code{\link{print.pp_functional_coefficient}()},
+\code{\link{project_functional_scores}()}
 }
 \concept{functional covariates}

@@ -156,11 +156,11 @@ st_field <- pp_covariate(
 \code{\link[=pp_grid]{pp_grid()}} for regular targets, and \code{\link[=pp_window]{pp_window()}} for reference domains.
 Covariate objects can be visualised with \code{plot()}.
 
-Other covariate tools:
-\code{\link[=evaluate_covariate]{evaluate_covariate()}},
-\code{\link[=extract_covariates]{extract_covariates()}},
-\code{\link[=pp_grid]{pp_grid()}},
-\code{\link[=print.pp_covariate]{print.pp_covariate()}},
-\code{\link[=print.pp_grid]{print.pp_grid()}}
+Other covariate tools: 
+\code{\link{evaluate_covariate}()},
+\code{\link{extract_covariates}()},
+\code{\link{pp_grid}()},
+\code{\link{print.pp_covariate}()},
+\code{\link{print.pp_grid}()}
 }
 \concept{covariate tools}

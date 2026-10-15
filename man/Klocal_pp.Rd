@@ -67,12 +67,12 @@ plot(local_k, what = "local", local_id = 1)
 \code{\link[=K_pp]{K_pp()}} for the underlying estimator and \code{\link[=Klocal_fit_pp]{Klocal_fit_pp()}} for local
 contributions using a fitted ground intensity.
 
-Other second-order diagnostics:
-\code{\link[=K_fit_pp]{K_fit_pp()}},
-\code{\link[=K_pp]{K_pp()}},
-\code{\link[=diagnose_pp]{diagnose_pp()}},
-\code{\link[=envelope_pp]{envelope_pp()}},
-\code{\link[=print.pp_K]{print.pp_K()}},
-\code{\link[=print.pp_envelope]{print.pp_envelope()}}
+Other second-order diagnostics: 
+\code{\link{K_fit_pp}()},
+\code{\link{K_pp}()},
+\code{\link{diagnose_pp}()},
+\code{\link{envelope_pp}()},
+\code{\link{print.pp_K}()},
+\code{\link{print.pp_envelope}()}
 }
 \concept{second-order diagnostics}

@@ -129,12 +129,12 @@ inhomogeneous spatio-temporal point process data. \emph{Statistica Neerlandica},
 calculation from supplied intensities, and \code{\link[=envelope_pp]{envelope_pp()}} for global
 simulation envelopes.
 
-Other second-order diagnostics:
-\code{\link[=K_pp]{K_pp()}},
-\code{\link[=Klocal_pp]{Klocal_pp()}},
-\code{\link[=diagnose_pp]{diagnose_pp()}},
-\code{\link[=envelope_pp]{envelope_pp()}},
-\code{\link[=print.pp_K]{print.pp_K()}},
-\code{\link[=print.pp_envelope]{print.pp_envelope()}}
+Other second-order diagnostics: 
+\code{\link{K_pp}()},
+\code{\link{Klocal_pp}()},
+\code{\link{diagnose_pp}()},
+\code{\link{envelope_pp}()},
+\code{\link{print.pp_K}()},
+\code{\link{print.pp_envelope}()}
 }
 \concept{second-order diagnostics}

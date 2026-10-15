@@ -70,19 +70,19 @@ summary(gst)
 \code{\link[=extract_covariates]{extract_covariates()}} for grid evaluation, and \code{\link[=predict_pp_fit]{predict_pp_fit()}} for model
 prediction at grid locations.
 
-Other point-pattern data:
-\code{\link[=pp_pattern]{pp_pattern()}},
-\code{\link[=pp_window]{pp_window()}},
-\code{\link[=print.pp]{print.pp()}},
-\code{\link[=print.pp_grid]{print.pp_grid()}},
-\code{\link[=print.pp_window]{print.pp_window()}}
+Other point-pattern data: 
+\code{\link{pp_pattern}()},
+\code{\link{pp_window}()},
+\code{\link{print.pp}()},
+\code{\link{print.pp_grid}()},
+\code{\link{print.pp_window}()}
 
-Other covariate tools:
-\code{\link[=evaluate_covariate]{evaluate_covariate()}},
-\code{\link[=extract_covariates]{extract_covariates()}},
-\code{\link[=pp_covariate]{pp_covariate()}},
-\code{\link[=print.pp_covariate]{print.pp_covariate()}},
-\code{\link[=print.pp_grid]{print.pp_grid()}}
+Other covariate tools: 
+\code{\link{evaluate_covariate}()},
+\code{\link{extract_covariates}()},
+\code{\link{pp_covariate}()},
+\code{\link{print.pp_covariate}()},
+\code{\link{print.pp_grid}()}
 }
 \concept{covariate tools}
 \concept{point-pattern data}

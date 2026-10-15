@@ -3295,8 +3295,10 @@ diagnose_pp <- function(...) {
 #' @return
 #' The print and plot methods return their input invisibly.
 #' `summary.pp_envelope()` returns an object of class
-#' `"summary_pp_envelope"` containing the diagnostic settings and, when
-#' available, the summary of the stored `GET` envelope. Methods for
+#' `"summary_pp_envelope"` containing the diagnostic settings, the p-value
+#' of the global envelope test (`p_value`, with `p_interval` when `GET`
+#' reports one) and, when available, the summary of the stored `GET`
+#' envelope. Methods for
 #' `"pp_diagnostic"` delegate to the corresponding `"pp_envelope"` methods.
 #'
 #' @examples
@@ -3367,6 +3369,8 @@ summary.pp_envelope <- function(object, ...) {
     alternative = object$settings$alternative,
     correction = object$settings$correction,
     K_type = object$observed$type,
+    p_value = attr(object$envelope, "p"),
+    p_interval = attr(object$envelope, "p_interval"),
     GET_summary = envelope_summary
   )
 
@@ -3387,6 +3391,14 @@ print.summary_pp_envelope <- function(x, ...) {
   cat("Alternative: ", x$alternative, "\n", sep = "")
   cat("K type: ", x$K_type, "\n", sep = "")
   cat("Correction: ", x$correction, "\n", sep = "")
+
+  if (!is.null(x$p_value)) {
+    cat("Global envelope test p-value: ", format(x$p_value, digits = 3), sep = "")
+    if (!is.null(x$p_interval)) {
+      cat(" (interval ", paste(format(x$p_interval, digits = 3), collapse = " - "), ")", sep = "")
+    }
+    cat("\n")
+  }
 
   if (!is.null(x$GET_summary)) {
     cat("\nGET summary:\n")

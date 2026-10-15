@@ -27,7 +27,7 @@ printing and plotting, or a \code{summary_pp_residual_profile} object for
 \code{print.summary_pp_residual_profile()}.}
 
 \item{...}{Additional arguments. For plotting, they are passed to
-\code{\link[graphics:plot]{graphics::plot()}} and, for a profile set, forwarded to each panel.}
+\code{\link[graphics:plot.default]{graphics::plot()}} and, for a profile set, forwarded to each panel.}
 
 \item{object}{A \code{pp_residual_profile} object to summarise.}
 
@@ -81,14 +81,14 @@ plot(profile_set)
 \seealso{
 \code{\link[=residual_profile_pp]{residual_profile_pp()}}, \code{\link[=envelope_residual_pp]{envelope_residual_pp()}}.
 
-Other first-order point-process diagnostics:
-\code{\link[=diagnose_first_order_pp]{diagnose_first_order_pp()}},
-\code{\link[=envelope_residual_pp]{envelope_residual_pp()}},
-\code{\link[=integrate_pp_fit]{integrate_pp_fit()}},
-\code{\link[=print.pp_residual_envelope]{print.pp_residual_envelope()}},
-\code{\link[=print.pp_residuals]{print.pp_residuals()}},
-\code{\link[=residual_grid_pp]{residual_grid_pp()}},
-\code{\link[=residual_profile_pp]{residual_profile_pp()}},
-\code{\link[=residuals_pp]{residuals_pp()}}
+Other first-order point-process diagnostics: 
+\code{\link{diagnose_first_order_pp}()},
+\code{\link{envelope_residual_pp}()},
+\code{\link{integrate_pp_fit}()},
+\code{\link{print.pp_residual_envelope}()},
+\code{\link{print.pp_residuals}()},
+\code{\link{residual_grid_pp}()},
+\code{\link{residual_profile_pp}()},
+\code{\link{residuals_pp}()}
 }
 \concept{first-order point-process diagnostics}

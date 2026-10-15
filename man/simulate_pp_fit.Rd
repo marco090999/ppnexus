@@ -163,8 +163,8 @@ second edition. Springer.
 \code{\link[=refit_pp]{refit_pp()}} for refitting the retained model specification, and
 \code{\link[=envelope_pp]{envelope_pp()}} for repeated simulation and refitting.
 
-Other fitted Poisson model operations:
-\code{\link[=predict_pp_fit]{predict_pp_fit()}},
-\code{\link[=refit_pp]{refit_pp()}}
+Other fitted Poisson model operations: 
+\code{\link{predict_pp_fit}()},
+\code{\link{refit_pp}()}
 }
 \concept{fitted Poisson model operations}

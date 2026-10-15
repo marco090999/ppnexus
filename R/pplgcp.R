@@ -1317,7 +1317,18 @@ simulate_lgcp_pp <- function(
 
     all_covariates <- c(base_covariates, stats::setNames(list(latent_covariate), latent_name))
     all_methods <- c(base_methods, stats::setNames(field_method, latent_name))
-    all_args <- c(base_args, stats::setNames(list(field_args), latent_name))
+    # The latent field lives on a regular grid. Distances used to interpolate
+    # it are measured in grid steps, which makes spatial and temporal axes
+    # commensurable (and avoids the axis_scale warning of mixed space-time
+    # covariates, which the user cannot act on here).
+    latent_args <- field_args
+    if (is.null(latent_args$axis_scale)) {
+      latent_args$axis_scale <- apply(as.matrix(field$coords), 2L, function(v) {
+        steps <- diff(sort(unique(v)))
+        if (length(steps) == 0L) 1 else min(steps)
+      })
+    }
+    all_args <- c(base_args, stats::setNames(list(latent_args), latent_name))
 
     wrapped_mark_generators <- .pp_lgcp_wrap_mark_generators(
       mark_generators = mark_generators,
@@ -1716,7 +1727,7 @@ simulate_lgcp_pp <- function(
 .pp_lgcp_default_start <- function(window, cov_model) {
   widths <- .pp_lgcp_window_widths(window)
   axes <- .pp_lgcp_axis_sets(window$axis_info)
-  spatial_scale <- min(widths[axes$space]) / 5
+  spatial_scale <- unname(min(widths[axes$space])) / 5
 
   switch(
     cov_model,
@@ -1726,12 +1737,12 @@ simulate_lgcp_pp <- function(
     separable_exponential = c(
       sigma2 = 1,
       alpha_space = spatial_scale,
-      alpha_time = widths[axes$time] / 5
+      alpha_time = unname(widths[axes$time]) / 5
     ),
     gneiting = c(
       sigma2 = 1,
       alpha_space = spatial_scale,
-      alpha_time = widths[axes$time] / 5,
+      alpha_time = unname(widths[axes$time]) / 5,
       beta = 0.5,
       gamma = 0.5
     ),
@@ -1754,7 +1765,7 @@ simulate_lgcp_pp <- function(
   max_space <- spatial_max * 10
 
   if (axes$is_st) {
-    time_width <- widths[axes$time]
+    time_width <- unname(widths[axes$time])
     tiny_time <- max(.Machine$double.eps^0.25, time_width * 1e-5)
     max_time <- time_width * 10
   }
@@ -1898,6 +1909,52 @@ simulate_lgcp_pp <- function(
 }
 
 
+# Starting values for the multi-start minimum contrast. The variance and range
+# parameters of the built-in models are multiplied by factors on a coarse grid;
+# shape parameters are kept at their starting values. The criterion is evaluated
+# at every candidate and the `n_best` best distinct candidates are returned.
+.pp_lgcp_candidate_starts <- function(start, lower, upper, objective, n_best = 3L) {
+  scaled <- intersect(names(start), c("sigma2", "alpha", "alpha_space", "alpha_time"))
+
+  if (length(scaled) == 0L) {
+    # Custom covariance: scale every parameter jointly.
+    factors <- c(0.25, 0.5, 1, 2, 4)
+    grid <- lapply(factors, function(f) start * f)
+  } else {
+    factor_grid <- expand.grid(
+      rep(list(c(0.1, 0.3, 1, 2, 4)), length(scaled)),
+      KEEP.OUT.ATTRS = FALSE
+    )
+    grid <- lapply(seq_len(nrow(factor_grid)), function(i) {
+      out <- start
+      out[scaled] <- start[scaled] * unlist(factor_grid[i, ])
+      out
+    })
+  }
+
+  grid <- lapply(grid, function(par) {
+    par <- pmin(pmax(par, lower), upper)
+    names(par) <- names(start)
+    par
+  })
+  grid <- c(list(start), grid)
+  grid <- grid[!duplicated(lapply(grid, signif, 8))]
+
+  values <- vapply(grid, function(par) {
+    value <- tryCatch(objective(par), error = function(error) Inf)
+    if (is.finite(value)) value else Inf
+  }, numeric(1))
+
+  keep <- order(values)[seq_len(min(n_best, sum(is.finite(values))))]
+
+  if (length(keep) == 0L) {
+    return(list(start))
+  }
+
+  grid[keep]
+}
+
+
 .pp_lgcp_mincontrast <- function(
     empirical_K,
     window,
@@ -1911,7 +1968,8 @@ simulate_lgcp_pp <- function(
     contrast_weight,
     integration_n,
     optim_control,
-    verbose
+    verbose,
+    multistart = TRUE
 ) {
   contrast_q <- .pp_lgcp_validate_positive_number(
     contrast_q,
@@ -1997,23 +2055,79 @@ simulate_lgcp_pp <- function(
   # default for a custom covariance) its first quasi-Newton step can leave the
   # valid region and the search stops at the starting values with a spurious
   # convergence code. Nelder-Mead is used when no bound is finite.
-  if (any(is.finite(parameters$lower)) || any(is.finite(parameters$upper))) {
-    optimisation <- stats::optim(
-      par = parameters$start,
-      fn = objective,
-      method = "L-BFGS-B",
+  bounded <- any(is.finite(parameters$lower)) || any(is.finite(parameters$upper))
+
+  run_optim <- function(start_values) {
+    control <- optim_control
+    if (is.null(control$parscale)) {
+      control$parscale <- pmax(abs(start_values), 1e-6)
+    }
+    # The criterion is often of order 1e-6. L-BFGS-B measures the relative
+    # reduction of the criterion against max(|f|, 1), so an unscaled criterion
+    # stops the search after one or two steps. Scale it to order one.
+    if (is.null(control$fnscale)) {
+      f0 <- objective(start_values)
+      if (is.finite(f0) && f0 > 0 && f0 < .Machine$double.xmax^0.25) {
+        control$fnscale <- f0
+      }
+    }
+    out <- tryCatch(
+      if (bounded) {
+        stats::optim(
+          par = start_values,
+          fn = objective,
+          method = "L-BFGS-B",
+          lower = parameters$lower,
+          upper = parameters$upper,
+          control = control
+        )
+      } else {
+        stats::optim(
+          par = start_values,
+          fn = objective,
+          method = "Nelder-Mead",
+          control = control
+        )
+      },
+      error = function(error) NULL
+    )
+    if (!is.null(out)) {
+      names(out$par) <- parameter_names
+    }
+    out
+  }
+
+  starts <- list(parameters$start)
+
+  if (isTRUE(multistart)) {
+    starts <- .pp_lgcp_candidate_starts(
+      start = parameters$start,
       lower = parameters$lower,
       upper = parameters$upper,
-      control = optim_control
-    )
-  } else {
-    optimisation <- stats::optim(
-      par = parameters$start,
-      fn = objective,
-      method = "Nelder-Mead",
-      control = optim_control
+      objective = objective
     )
   }
+
+  candidates <- lapply(starts, run_optim)
+  candidates <- candidates[!vapply(candidates, is.null, logical(1))]
+
+  if (length(candidates) == 0L) {
+    stop("The minimum-contrast optimisation failed from every starting value.", call. = FALSE)
+  }
+
+  values <- vapply(candidates, function(o) o$value, numeric(1))
+  optimisation <- candidates[[which.min(values)]]
+
+  # Restart once from the best solution: quasi-Newton runs can stop early on
+  # flat ridges of the criterion.
+  if (isTRUE(multistart)) {
+    polished <- run_optim(optimisation$par)
+    if (!is.null(polished) && polished$value <= optimisation$value) {
+      optimisation <- polished
+    }
+  }
+
+  optimisation$n_starts <- length(starts)
 
   theta <- as.numeric(optimisation$par)
   names(theta) <- parameter_names
@@ -2082,6 +2196,7 @@ simulate_lgcp_pp <- function(
     contrast_weight = NULL,
     integration_n = NULL,
     optim_control = list(maxit = 200L),
+    multistart = TRUE,
     k_chunk_size = 2000L,
     mark_n = NULL,
     max_ground_mark_combinations = 100000L,
@@ -2183,6 +2298,7 @@ simulate_lgcp_pp <- function(
     contrast_weight = contrast_weight,
     integration_n = integration_n,
     optim_control = optim_control,
+    multistart = multistart,
     verbose = verbose
   )
 

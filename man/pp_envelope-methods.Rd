@@ -41,8 +41,10 @@ on a flattened index.}
 \value{
 The print and plot methods return their input invisibly.
 \code{summary.pp_envelope()} returns an object of class
-\code{"summary_pp_envelope"} containing the diagnostic settings and, when
-available, the summary of the stored \code{GET} envelope. Methods for
+\code{"summary_pp_envelope"} containing the diagnostic settings, the p-value
+of the global envelope test (\code{p_value}, with \code{p_interval} when \code{GET}
+reports one) and, when available, the summary of the stored \code{GET}
+envelope. Methods for
 \code{"pp_diagnostic"} delegate to the corresponding \code{"pp_envelope"} methods.
 }
 \description{
@@ -86,12 +88,12 @@ plot(envelope, what = "residual")
 \seealso{
 \code{\link[=envelope_pp]{envelope_pp()}}, \code{\link[=diagnose_pp]{diagnose_pp()}}, and \code{\link[=plot.pp_K]{plot.pp_K()}}.
 
-Other second-order diagnostics:
-\code{\link[=K_fit_pp]{K_fit_pp()}},
-\code{\link[=K_pp]{K_pp()}},
-\code{\link[=Klocal_pp]{Klocal_pp()}},
-\code{\link[=diagnose_pp]{diagnose_pp()}},
-\code{\link[=envelope_pp]{envelope_pp()}},
-\code{\link[=print.pp_K]{print.pp_K()}}
+Other second-order diagnostics: 
+\code{\link{K_fit_pp}()},
+\code{\link{K_pp}()},
+\code{\link{Klocal_pp}()},
+\code{\link{diagnose_pp}()},
+\code{\link{envelope_pp}()},
+\code{\link{print.pp_K}()}
 }
 \concept{second-order diagnostics}

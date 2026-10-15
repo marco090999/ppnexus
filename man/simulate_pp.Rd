@@ -353,7 +353,7 @@ Point Processes. Volume I: Elementary Theory and Methods}, 2nd ed. Springer.
 \code{\link[=pp_window]{pp_window()}}, \code{\link[=pp_pattern]{pp_pattern()}}, \code{\link[=pp_covariate]{pp_covariate()}}, \code{\link[=evaluate_covariate]{evaluate_covariate()}},
 \code{\link[=pp_grid]{pp_grid()}}, \code{\link[=fit_pp]{fit_pp()}}, and \code{\link[=simulate_lgcp_pp]{simulate_lgcp_pp()}}.
 
-Other Poisson-process simulation:
-\code{\link[=print.pp_simulation]{print.pp_simulation()}}
+Other Poisson-process simulation: 
+\code{\link{print.pp_simulation}()}
 }
 \concept{Poisson-process simulation}

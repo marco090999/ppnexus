@@ -156,13 +156,13 @@ estimation techniques in R package etasFLP for earthquakes' description.
 \code{\link[=decluster_etas_pp]{decluster_etas_pp()}} for posterior event classification, and
 \code{\link[=simulate_etas_pp]{simulate_etas_pp()}} for ETAS simulation.
 
-Other ETAS modelling:
-\code{\link[=as_etas_catalog]{as_etas_catalog()}},
-\code{\link[=decluster_etas_pp]{decluster_etas_pp()}},
-\code{\link[=fit_etas_pp]{fit_etas_pp()}},
-\code{\link[=print.pp_etas_catalog]{print.pp_etas_catalog()}},
-\code{\link[=print.pp_etas_fit]{print.pp_etas_fit()}},
-\code{\link[=print.pp_etas_simulation]{print.pp_etas_simulation()}},
-\code{\link[=simulate_etas_pp]{simulate_etas_pp()}}
+Other ETAS modelling: 
+\code{\link{as_etas_catalog}()},
+\code{\link{decluster_etas_pp}()},
+\code{\link{fit_etas_pp}()},
+\code{\link{print.pp_etas_catalog}()},
+\code{\link{print.pp_etas_fit}()},
+\code{\link{print.pp_etas_simulation}()},
+\code{\link{simulate_etas_pp}()}
 }
 \concept{ETAS modelling}

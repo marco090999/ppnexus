@@ -301,9 +301,9 @@ Wood, S. N. (2017). \emph{Generalized Additive Models: An Introduction with R},
 fitted joint or ground intensities; \code{\link[=K_fit_pp]{K_fit_pp()}} and \code{\link[=residuals_pp]{residuals_pp()}} provide
 second- and first-order diagnostics.
 
-Other Poisson point-process models:
-\code{\link[=pp_cubature]{pp_cubature()}},
-\code{\link[=print.pp_cubature]{print.pp_cubature()}},
-\code{\link[=print.pp_fit]{print.pp_fit()}}
+Other Poisson point-process models: 
+\code{\link{pp_cubature}()},
+\code{\link{print.pp_cubature}()},
+\code{\link{print.pp_fit}()}
 }
 \concept{Poisson point-process models}

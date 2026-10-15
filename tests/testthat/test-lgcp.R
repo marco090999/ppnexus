@@ -104,3 +104,38 @@ test_that("a custom covariance function gives the built-in estimates", {
   expect_false(isTRUE(all.equal(unname(custom$theta), c(1, 0.2))))
   expect_equal(custom$theta, builtin$theta, tolerance = 0.02)
 })
+
+test_that("a spatio-temporal LGCP is fitted with the default bounds", {
+  # Regression test: the default start and bounds of `alpha_time` carried the
+  # name of the time axis, so they became NA and the fit stopped with an error.
+  skip_on_cran()
+  w <- space_time_window(tmax = 5)
+  x <- simulate_lgcp_pp(
+    window = w,
+    log_intensity = function(coords) rep(log(60), nrow(coords)),
+    cov_model = "separable_exponential",
+    covariance_params = c(sigma2 = 0.5, alpha_space = 0.1, alpha_time = 0.5),
+    field_n = c(x = 10, y = 10, time = 10),
+    output = "pattern",
+    seed = 4
+  )
+  fit <- fit_lgcp_pp(x, ~1, cov_model = "separable_exponential",
+                     r = seq(0.02, 0.25, length.out = 6),
+                     u = seq(0.2, 1.5, length.out = 5), nc = c(x = 5, y = 5, time = 5),
+                     control = lgcp_control(integration_n = 60))
+  expect_identical(names(fit$theta), c("sigma2", "alpha_space", "alpha_time"))
+  expect_true(all(is.finite(fit$theta)))
+})
+
+test_that("multi-start minimum contrast never worsens the criterion", {
+  skip_on_cran()
+  x <- simulate_reference_lgcp()
+  r <- seq(0.01, 0.25, length.out = 12)
+  single <- fit_lgcp_pp(x, ~1, cov_model = "exponential", r = r, nc = 8,
+                        control = lgcp_control(integration_n = 150, multistart = FALSE))
+  multi <- fit_lgcp_pp(x, ~1, cov_model = "exponential", r = r, nc = 8,
+                       control = lgcp_control(integration_n = 150))
+  expect_lte(multi$second_order$contrast_value,
+             single$second_order$contrast_value * (1 + 1e-8))
+  expect_error(lgcp_control(multistart = NA), "multistart")
+})

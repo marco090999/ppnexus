@@ -45,19 +45,19 @@ print(sg)
 \seealso{
 \code{\link[=pp_grid]{pp_grid()}} and \code{\link[=pp_window]{pp_window()}}.
 
-Other point-pattern data:
-\code{\link[=pp_grid]{pp_grid()}},
-\code{\link[=pp_pattern]{pp_pattern()}},
-\code{\link[=pp_window]{pp_window()}},
-\code{\link[=print.pp]{print.pp()}},
-\code{\link[=print.pp_window]{print.pp_window()}}
+Other point-pattern data: 
+\code{\link{pp_grid}()},
+\code{\link{pp_pattern}()},
+\code{\link{pp_window}()},
+\code{\link{print.pp}()},
+\code{\link{print.pp_window}()}
 
-Other covariate tools:
-\code{\link[=evaluate_covariate]{evaluate_covariate()}},
-\code{\link[=extract_covariates]{extract_covariates()}},
-\code{\link[=pp_covariate]{pp_covariate()}},
-\code{\link[=pp_grid]{pp_grid()}},
-\code{\link[=print.pp_covariate]{print.pp_covariate()}}
+Other covariate tools: 
+\code{\link{evaluate_covariate}()},
+\code{\link{extract_covariates}()},
+\code{\link{pp_covariate}()},
+\code{\link{pp_grid}()},
+\code{\link{print.pp_covariate}()}
 }
 \concept{covariate tools}
 \concept{point-pattern data}

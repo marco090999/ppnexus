@@ -34,11 +34,11 @@ w
 \seealso{
 \code{\link[=pp_window]{pp_window()}}.
 
-Other point-pattern data:
-\code{\link[=pp_grid]{pp_grid()}},
-\code{\link[=pp_pattern]{pp_pattern()}},
-\code{\link[=pp_window]{pp_window()}},
-\code{\link[=print.pp]{print.pp()}},
-\code{\link[=print.pp_grid]{print.pp_grid()}}
+Other point-pattern data: 
+\code{\link{pp_grid}()},
+\code{\link{pp_pattern}()},
+\code{\link{pp_window}()},
+\code{\link{print.pp}()},
+\code{\link{print.pp_grid}()}
 }
 \concept{point-pattern data}

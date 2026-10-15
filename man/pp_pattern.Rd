@@ -177,11 +177,11 @@ xst <- pp_pattern(
 supports, \code{\link[=pp_grid]{pp_grid()}} for regular evaluation grids, \code{\link[=simulate_pp]{simulate_pp()}} for
 simulation, and \code{\link[=fit_pp]{fit_pp()}} for Poisson point-process fitting.
 
-Other point-pattern data:
-\code{\link[=pp_grid]{pp_grid()}},
-\code{\link[=pp_window]{pp_window()}},
-\code{\link[=print.pp]{print.pp()}},
-\code{\link[=print.pp_grid]{print.pp_grid()}},
-\code{\link[=print.pp_window]{print.pp_window()}}
+Other point-pattern data: 
+\code{\link{pp_grid}()},
+\code{\link{pp_window}()},
+\code{\link{print.pp}()},
+\code{\link{print.pp_grid}()},
+\code{\link{print.pp_window}()}
 }
 \concept{point-pattern data}

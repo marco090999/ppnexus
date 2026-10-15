@@ -133,14 +133,14 @@ Chapman and Hall/CRC.
 \code{\link[=residuals_pp]{residuals_pp()}}, \code{\link[=envelope_residual_pp]{envelope_residual_pp()}},
 \code{\link[=diagnose_first_order_pp]{diagnose_first_order_pp()}}.
 
-Other first-order point-process diagnostics:
-\code{\link[=diagnose_first_order_pp]{diagnose_first_order_pp()}},
-\code{\link[=envelope_residual_pp]{envelope_residual_pp()}},
-\code{\link[=integrate_pp_fit]{integrate_pp_fit()}},
-\code{\link[=print.pp_residual_envelope]{print.pp_residual_envelope()}},
-\code{\link[=print.pp_residual_profile]{print.pp_residual_profile()}},
-\code{\link[=print.pp_residuals]{print.pp_residuals()}},
-\code{\link[=residual_grid_pp]{residual_grid_pp()}},
-\code{\link[=residuals_pp]{residuals_pp()}}
+Other first-order point-process diagnostics: 
+\code{\link{diagnose_first_order_pp}()},
+\code{\link{envelope_residual_pp}()},
+\code{\link{integrate_pp_fit}()},
+\code{\link{print.pp_residual_envelope}()},
+\code{\link{print.pp_residual_profile}()},
+\code{\link{print.pp_residuals}()},
+\code{\link{residual_grid_pp}()},
+\code{\link{residuals_pp}()}
 }
 \concept{first-order point-process diagnostics}

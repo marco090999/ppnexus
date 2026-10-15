@@ -54,12 +54,12 @@ diagnostic
 \code{\link[=envelope_pp]{envelope_pp()}} for the complete method description and
 \code{\link[=diagnose_first_order_pp]{diagnose_first_order_pp()}} for residual-based first-order diagnostics.
 
-Other second-order diagnostics:
-\code{\link[=K_fit_pp]{K_fit_pp()}},
-\code{\link[=K_pp]{K_pp()}},
-\code{\link[=Klocal_pp]{Klocal_pp()}},
-\code{\link[=envelope_pp]{envelope_pp()}},
-\code{\link[=print.pp_K]{print.pp_K()}},
-\code{\link[=print.pp_envelope]{print.pp_envelope()}}
+Other second-order diagnostics: 
+\code{\link{K_fit_pp}()},
+\code{\link{K_pp}()},
+\code{\link{Klocal_pp}()},
+\code{\link{envelope_pp}()},
+\code{\link{print.pp_K}()},
+\code{\link{print.pp_envelope}()}
 }
 \concept{second-order diagnostics}

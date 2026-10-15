@@ -22,7 +22,7 @@
 \item{digits}{Positive integer controlling the number of significant digits
 printed for numerical summaries.}
 
-\item{...}{Additional graphical arguments passed to \code{\link[graphics:plot]{graphics::plot()}} for a
+\item{...}{Additional graphical arguments passed to \code{\link[graphics:plot.default]{graphics::plot()}} for a
 spatial curve or \code{\link[graphics:image]{graphics::image()}} for a spatio-temporal surface. They
 are ignored by the print and summary methods.}
 
@@ -75,12 +75,12 @@ plot(k, what = "local", local_id = 1)
 \seealso{
 \code{\link[=K_pp]{K_pp()}}, \code{\link[=K_fit_pp]{K_fit_pp()}}, and \code{\link[=envelope_pp]{envelope_pp()}}.
 
-Other second-order diagnostics:
-\code{\link[=K_fit_pp]{K_fit_pp()}},
-\code{\link[=K_pp]{K_pp()}},
-\code{\link[=Klocal_pp]{Klocal_pp()}},
-\code{\link[=diagnose_pp]{diagnose_pp()}},
-\code{\link[=envelope_pp]{envelope_pp()}},
-\code{\link[=print.pp_envelope]{print.pp_envelope()}}
+Other second-order diagnostics: 
+\code{\link{K_fit_pp}()},
+\code{\link{K_pp}()},
+\code{\link{Klocal_pp}()},
+\code{\link{diagnose_pp}()},
+\code{\link{envelope_pp}()},
+\code{\link{print.pp_envelope}()}
 }
 \concept{second-order diagnostics}

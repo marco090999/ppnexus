@@ -1003,7 +1003,6 @@ print.summary_pp_etas_catalog <- function(x, ...) {
     drop = FALSE
   ]
 
-  n_vert0 <- nrow(vert0)
 
   # Repeat the first vertex at the end to close the polygon.
   vert <- rbind(
@@ -1012,44 +1011,6 @@ print.summary_pp_etas_catalog <- function(x, ...) {
   )
 
   vert_theta <- vert[, "theta"]
-  vert_rho <- vert[, "rho"]
-
-  vert_seq <- seq_len(n_vert0)
-
-  # Angular width between consecutive vertices.
-  vert_gamma <- .pp_etas_angle_positive(
-    diff(vert_theta)
-  )
-
-  # Length of the polygon side between consecutive vertices.
-  side_c <- sqrt(
-    vert_rho[vert_seq + 1L]^2 +
-      vert_rho[vert_seq]^2 -
-      2 *
-      vert_rho[vert_seq + 1L] *
-      vert_rho[vert_seq] *
-      cos(vert_gamma)
-  )
-
-  numerator <-
-    vert_rho[vert_seq]^2 +
-    side_c^2 -
-    vert_rho[vert_seq + 1L]^2
-
-  denominator <-
-    2 *
-    vert_rho[vert_seq] *
-    side_c
-
-  cos_alpha <- numerator / denominator
-
-  # Numerical safeguard.
-  cos_alpha <- pmin(
-    1,
-    pmax(-1, cos_alpha)
-  )
-
-  vert_alpha <- acos(cos_alpha)
 
   # Angular directions used for polar integration.
   theta_grid <- .pp_etas_angle_positive(
@@ -1066,50 +1027,40 @@ print.summary_pp_etas_catalog <- function(x, ...) {
     2L:(ntheta + 1L)
   ]
 
-  # Identify the polygon side intersected by each angular ray.
-  ind1 <- findInterval(
-    theta_grid,
-    vert_theta[vert_seq]
-  )
-
-  ind1[ind1 == 0L] <- max(vert_seq)
-
-  alpha_inf <- vert_alpha[ind1]
-
-  theta_inf <- .pp_etas_angle_positive(
-    theta_grid -
-      vert_theta[ind1]
-  )
-
-  rho_inf <- vert_rho[ind1]
-
-  denominator_rho <- sin(
-    theta_inf +
-      alpha_inf
-  )
-
-  # Very small numerical values should not generate division by zero.
+  # Distance from the origin to the boundary of the (axis-aligned) window
+  # along each ray, in closed form. This is the same quantity as the
+  # triangle-based construction of etasFLP::region.P() for a rectangle, but it
+  # is numerically stable for events on or very close to the boundary, where
+  # the outward radii are (close to) zero.
+  x_range <- range(region[, 1L])
+  y_range <- range(region[, 2L])
+  dx <- cos(theta_grid)
+  dy <- sin(theta_grid)
   tiny <- sqrt(.Machine$double.eps)
 
-  if (any(abs(denominator_rho) < tiny)) {
-    denominator_rho[
-      abs(denominator_rho) < tiny
-    ] <- tiny
+  reach <- function(direction, lower, upper, position) {
+    out <- rep(Inf, length(direction))
+    pos <- direction > tiny
+    neg <- direction < -tiny
+    out[pos] <- (upper - position) / direction[pos]
+    out[neg] <- (lower - position) / direction[neg]
+    out
   }
 
-  rho_grid <-
-    rho_inf *
-    sin(alpha_inf) /
-    denominator_rho
+  rho_grid <- pmin(
+    reach(dx, x_range[1L], x_range[2L], origin[1L]),
+    reach(dy, y_range[1L], y_range[2L], origin[2L])
+  )
+  rho_grid[rho_grid < 0 & rho_grid > -tiny * max(diff(x_range), diff(y_range))] <- 0
 
   if (
     any(!is.finite(rho_grid)) ||
-    any(rho_grid <= 0)
+    any(rho_grid < 0)
   ) {
     stop(
       paste0(
         "ETAS spatial boundary radii are invalid. ",
-        "This usually indicates an event on or outside the working spatial window."
+        "This usually indicates an event outside the working spatial window."
       ),
       call. = FALSE
     )

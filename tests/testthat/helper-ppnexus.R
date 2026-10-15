@@ -58,7 +58,18 @@ count_pdf_pages <- function(expr) {
   grDevices::pdf(file, compress = FALSE)
   device_open <- TRUE
   on.exit(if (device_open) grDevices::dev.off(), add = TRUE, after = FALSE)
-  force(expr)
+  # GET calls ggplot2 functions that recent ggplot2 versions flag as
+  # deprecated (aes_string(), aes_()). Those lifecycle warnings come from a
+  # dependency, not from ppnexus, and are muffled here; any other warning is
+  # still reported.
+  withCallingHandlers(
+    force(expr),
+    warning = function(w) {
+      if (inherits(w, "lifecycle_warning_deprecated")) {
+        invokeRestart("muffleWarning")
+      }
+    }
+  )
   grDevices::dev.off()
   device_open <- FALSE
 

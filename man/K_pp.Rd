@@ -170,12 +170,12 @@ inhomogeneous spatio-temporal point process data. \emph{Statistica Neerlandica},
 \code{\link[=Klocal_pp]{Klocal_pp()}} for the local wrapper, \code{\link[=K_fit_pp]{K_fit_pp()}} for K-functions based on a
 fitted intensity, and \code{\link[=envelope_pp]{envelope_pp()}} for simulation-based global envelopes.
 
-Other second-order diagnostics:
-\code{\link[=K_fit_pp]{K_fit_pp()}},
-\code{\link[=Klocal_pp]{Klocal_pp()}},
-\code{\link[=diagnose_pp]{diagnose_pp()}},
-\code{\link[=envelope_pp]{envelope_pp()}},
-\code{\link[=print.pp_K]{print.pp_K()}},
-\code{\link[=print.pp_envelope]{print.pp_envelope()}}
+Other second-order diagnostics: 
+\code{\link{K_fit_pp}()},
+\code{\link{Klocal_pp}()},
+\code{\link{diagnose_pp}()},
+\code{\link{envelope_pp}()},
+\code{\link{print.pp_K}()},
+\code{\link{print.pp_envelope}()}
 }
 \concept{second-order diagnostics}

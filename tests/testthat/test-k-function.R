@@ -100,4 +100,9 @@ test_that("plotting a spatial K envelope draws the GET figure", {
                      verbose = FALSE)
 
   expect_identical(count_pdf_pages(plot(env)), 1L)
+
+  # The summary reports the p-value of the global envelope test.
+  s <- summary(env)
+  expect_true(is.numeric(s$p_value) && s$p_value > 0 && s$p_value <= 1)
+  expect_true(any(grepl("p-value", capture.output(print(s)))))
 })

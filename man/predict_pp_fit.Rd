@@ -151,8 +151,8 @@ Methodology and Applications with R}. Chapman and Hall/CRC.
 fitted-intensity K-functions, and \code{\link[=integrate_pp_fit]{integrate_pp_fit()}} for numerical
 integration of the ground intensity.
 
-Other fitted Poisson model operations:
-\code{\link[=refit_pp]{refit_pp()}},
-\code{\link[=simulate_pp_fit]{simulate_pp_fit()}}
+Other fitted Poisson model operations: 
+\code{\link{refit_pp}()},
+\code{\link{simulate_pp_fit}()}
 }
 \concept{fitted Poisson model operations}

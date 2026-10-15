@@ -14,6 +14,7 @@ lgcp_control(
   contrast_weight = NULL,
   integration_n = NULL,
   optim_control = list(maxit = 200L),
+  multistart = TRUE,
   k_chunk_size = 2000L,
   mark_n = NULL,
   max_ground_mark_combinations = 100000L,
@@ -47,6 +48,15 @@ integers (spatial, temporal) for spatio-temporal models. The default is
 \item{optim_control}{Control list passed to \code{\link[stats:optim]{stats::optim()}}. The method is
 \code{"L-BFGS-B"} when \code{lower} or \code{upper} contain finite bounds (always the case
 for the built-in covariance models) and \code{"Nelder-Mead"} otherwise.}
+
+\item{multistart}{Logical. If \code{TRUE} (default), the minimum-contrast
+criterion is first evaluated on a coarse grid of starting values around
+\code{start} (variance and range parameters multiplied by factors between 0.1
+and 4); the optimiser is run from the best starting points and restarted
+once from its solution, and the solution with the smallest criterion is
+kept. This guards against the premature stops of quasi-Newton optimisers
+on the flat ridges of the contrast surface. \code{FALSE} runs a single
+optimisation from \code{start}.}
 
 \item{k_chunk_size}{Chunk size for the pairwise computations of the
 empirical K-function.}

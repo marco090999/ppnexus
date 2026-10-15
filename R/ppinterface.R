@@ -103,6 +103,14 @@
 #' @param optim_control Control list passed to [stats::optim()]. The method is
 #'   `"L-BFGS-B"` when `lower` or `upper` contain finite bounds (always the case
 #'   for the built-in covariance models) and `"Nelder-Mead"` otherwise.
+#' @param multistart Logical. If `TRUE` (default), the minimum-contrast
+#'   criterion is first evaluated on a coarse grid of starting values around
+#'   `start` (variance and range parameters multiplied by factors between 0.1
+#'   and 4); the optimiser is run from the best starting points and restarted
+#'   once from its solution, and the solution with the smallest criterion is
+#'   kept. This guards against the premature stops of quasi-Newton optimisers
+#'   on the flat ridges of the contrast surface. `FALSE` runs a single
+#'   optimisation from `start`.
 #' @param k_chunk_size Chunk size for the pairwise computations of the
 #'   empirical K-function.
 #' @param mark_n Integration resolution used to marginalise continuous joint
@@ -128,11 +136,16 @@ lgcp_control <- function(
     contrast_weight = NULL,
     integration_n = NULL,
     optim_control = list(maxit = 200L),
+    multistart = TRUE,
     k_chunk_size = 2000L,
     mark_n = NULL,
     max_ground_mark_combinations = 100000L,
     verbose = FALSE
 ) {
+  if (!is.logical(multistart) || length(multistart) != 1L || is.na(multistart)) {
+    stop("`multistart` must be TRUE or FALSE.", call. = FALSE)
+  }
+
   out <- list(
     start = start,
     lower = lower,
@@ -143,6 +156,7 @@ lgcp_control <- function(
     contrast_weight = contrast_weight,
     integration_n = integration_n,
     optim_control = optim_control,
+    multistart = multistart,
     k_chunk_size = k_chunk_size,
     mark_n = mark_n,
     max_ground_mark_combinations = max_ground_mark_combinations,

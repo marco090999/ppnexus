@@ -213,3 +213,18 @@ test_that("a catalogue without triggering gives a warning about standard errors"
     "could not be computed"
   )
 })
+
+test_that("boundary radii integrate to the window area and allow boundary events", {
+  # Regression test: events on the boundary of the window (e.g. a window equal
+  # to the empirical range of the epicentres) stopped the fit.
+  region <- rbind(c(0, 0), c(3, 0), c(3, 2), c(0, 2))
+  radii <- ppnexus:::.pp_etas_region_radii
+  rho <- radii(region, c(1, 1), 2000)
+  expect_equal(sum(rho^2 / 2) * 2 * pi / 2000, 6, tolerance = 1e-4)
+
+  on_edge <- radii(region, c(3, 1), 36)
+  on_corner <- radii(region, c(3, 2), 36)
+  expect_true(all(is.finite(on_edge)) && all(on_edge >= 0) && min(on_edge) == 0)
+  expect_true(all(is.finite(on_corner)) && all(on_corner >= 0))
+  expect_error(radii(region, c(4, 1), 36), "outside")
+})
