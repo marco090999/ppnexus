@@ -20,39 +20,63 @@ knitr::opts_chunk$set(
 )
 ```
 
-**ppnexus** is built around one idea: the first-order intensity of a point
-process should be able to use *all* the information that is available about
-where, and when, events occur. Its core is a Poisson point-process model
-fitted in a domain whose dimension $d$ is chosen by the user (two- or
-three-dimensional space, space-time, and continuous marks treated as
-additional coordinates of the domain). The log-intensity of this model can
-combine, in a single formula:
 
-* the **coordinates** of the domain;
-* **spatial and spatio-temporal covariates** observed on arbitrary supports,
-  and interpolated wherever the model needs them;
-* **functional covariates**, that is, curves observed at each support point,
-  entered through their functional principal-component scores;
-* **categorical and continuous marks**, the latter as extra dimensions of the
-  domain;
-* **semiparametric terms**: smooth functions of any of the above, estimated
-  with **mgcv**.
+**ppnexus** is built around two complementary principles: **enriching the
+first-order intensity of point processes by integrating heterogeneous sources
+of information**, and **generalizing point-process modeling and analysis to
+$d$-dimensional domains**, encompassing spatial, spatio-temporal, and marked
+configurations.
 
-The aim is to widen the kind of information that can enter a Poisson model,
-so as to obtain a more accurate first-order intensity. This enriched Poisson
-model is then used as the **first-order building block of more complex
-models** that need an estimate of the first-order intensity. ppnexus
-currently provides two such extensions:
+The first principle concerns the flexibility of the first-order intensity.
+Rather than restricting its specification to spatial or temporal coordinates
+and a limited set of covariates, **ppnexus** allows different sources of
+information to be incorporated within a unified modeling framework. Its core
+is a Poisson point-process model whose log-intensity can combine, in a single
+formula:
 
-* **log-Gaussian Cox processes**, whose first-order trend is the enriched
-  Poisson model and whose second-order structure is estimated given that
-  trend;
-* **ETAS models with a parametric background**, whose background rate is the
-  enriched Poisson model, fitted jointly with the triggering component.
+* **coordinates** of the observation domain;
+* **spatial and spatio-temporal covariates** observed on arbitrary supports
+  and interpolated wherever model evaluation requires them;
+* **functional covariates**, represented through functional
+  principal-component scores;
+* **categorical and continuous marks**, with continuous marks also potentially
+  represented as additional coordinates of the domain;
+* **semiparametric terms**, including smooth functions of the available
+  predictors, estimated using **mgcv**.
 
-In both cases the first-order part accepts exactly the same formulas,
-covariates, marks and smooth terms as the Poisson model. The same set of
-objects and functions is used throughout:
+The aim is to exploit the available information relevant to the underlying
+point-generating mechanism, allowing for more flexible and potentially more
+accurate estimation of the first-order intensity.
+
+The second principle concerns **dimensional generality**. Rather than
+developing separate tools for specific spatial or spatio-temporal settings,
+**ppnexus** adopts a unified representation of point patterns and observation
+windows in a domain of dimension $d$. This includes two- and
+three-dimensional spatial processes, spatio-temporal processes, and
+higher-dimensional configurations in which additional coordinates may
+represent continuous marks or other dimensions of interest. The same
+underlying framework is used to represent data, construct covariates, fit
+models, and perform model-based diagnostics across different dimensional
+settings, subject to the dimensional requirements of individual methods.
+
+These two principles are brought together through the Poisson point-process
+model, which serves both as a flexible model in its own right and as the
+**first-order building block of more complex point-process models**.
+In particular, **ppnexus** currently provides two extensions:
+
+* **log-Gaussian Cox processes (LGCPs)**, in which the enriched Poisson model
+  specifies the first-order trend, while an additional stochastic component
+  accounts for residual spatial or spatio-temporal dependence;
+* **Epidemic-Type Aftershock Sequence (ETAS) models**, in which the enriched
+  Poisson model specifies the background intensity, combined with a
+  triggering component describing event-to-event interactions.
+
+In both extensions, the first-order component retains the same modeling
+flexibility in terms of predictors, covariates, marks, and smooth terms,
+within the dimensional settings supported by each model.
+
+The package provides a consistent set of objects and functions for the main
+stages of point-process analysis:
 
 | Step | Main functions |
 |---|---|
@@ -62,12 +86,15 @@ objects and functions is used throughout:
 | Use a fitted model | `predict_pp_fit()`, `integrate_pp_fit()`, `simulate_pp_fit()`, `refit_pp()` |
 | Diagnose | `residuals_pp()`, `diagnose_first_order_pp()`, `K_fit_pp()`, `envelope_pp()` |
 
-This vignette first builds the enriched first-order intensity step by step,
-on a simulated Poisson pattern: coordinates, covariates, smooth terms,
-diagnostics, marks, functional covariates, and domains of higher dimension.
-It then shows how the same first-order model is carried over to
-log-Gaussian Cox processes and ETAS models, and why its accuracy matters
-there.
+This vignette illustrates how these two principles operate together.
+It first develops an enriched first-order intensity for a simulated Poisson
+point pattern, progressively introducing coordinates, covariates, smooth
+terms, marks, and functional covariates. It then explores the extension to
+higher-dimensional domains and the associated diagnostic tools. Finally,
+it shows how the same first-order modeling strategy can be incorporated
+into log-Gaussian Cox and ETAS models, highlighting the importance of
+first-order intensity specification in more complex point-process models.
+
 
 ```{r load}
 library(ppnexus)
