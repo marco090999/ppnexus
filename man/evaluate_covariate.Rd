@@ -129,11 +129,11 @@ irregularly-spaced data. \emph{Proceedings of the 1968 ACM National Conference},
 \code{\link[=pp_covariate]{pp_covariate()}} to construct covariates, \code{\link[=extract_covariates]{extract_covariates()}} to evaluate
 several covariates together, and \code{\link[=pp_grid]{pp_grid()}} to create regular targets.
 
-Other covariate tools: 
-\code{\link{extract_covariates}()},
-\code{\link{pp_covariate}()},
-\code{\link{pp_grid}()},
-\code{\link{print.pp_covariate}()},
-\code{\link{print.pp_grid}()}
+Other covariate tools:
+\code{\link[=extract_covariates]{extract_covariates()}},
+\code{\link[=pp_covariate]{pp_covariate()}},
+\code{\link[=pp_grid]{pp_grid()}},
+\code{\link[=print.pp_covariate]{print.pp_covariate()}},
+\code{\link[=print.pp_grid]{print.pp_grid()}}
 }
 \concept{covariate tools}

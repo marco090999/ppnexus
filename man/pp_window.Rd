@@ -122,11 +122,11 @@ wst <- pp_window(
 \code{\link[=pp_pattern]{pp_pattern()}} for event patterns, \code{\link[=pp_covariate]{pp_covariate()}} for covariate supports,
 and \code{\link[=pp_grid]{pp_grid()}} for regular grids over a window.
 
-Other point-pattern data: 
-\code{\link{pp_grid}()},
-\code{\link{pp_pattern}()},
-\code{\link{print.pp}()},
-\code{\link{print.pp_grid}()},
-\code{\link{print.pp_window}()}
+Other point-pattern data:
+\code{\link[=pp_grid]{pp_grid()}},
+\code{\link[=pp_pattern]{pp_pattern()}},
+\code{\link[=print.pp]{print.pp()}},
+\code{\link[=print.pp_grid]{print.pp_grid()}},
+\code{\link[=print.pp_window]{print.pp_window()}}
 }
 \concept{point-pattern data}

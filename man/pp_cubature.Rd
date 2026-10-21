@@ -270,9 +270,9 @@ spatial point patterns. \emph{Australian & New Zealand Journal of Statistics},
 \code{\link[=pp_pattern]{pp_pattern()}} and \code{\link[=pp_window]{pp_window()}} construct the observed pattern and domain;
 \code{\link[=pp_covariate]{pp_covariate()}} and \code{\link[=evaluate_covariate]{evaluate_covariate()}} define and evaluate covariates.
 
-Other Poisson point-process models: 
-\code{\link{fit_pp}()},
-\code{\link{print.pp_cubature}()},
-\code{\link{print.pp_fit}()}
+Other Poisson point-process models:
+\code{\link[=fit_pp]{fit_pp()}},
+\code{\link[=print.pp_cubature]{print.pp_cubature()}},
+\code{\link[=print.pp_fit]{print.pp_fit()}}
 }
 \concept{Poisson point-process models}

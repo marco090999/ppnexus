@@ -72,12 +72,12 @@ Ramsay, J. O. and Silverman, B. W. (2005). \emph{Functional Data Analysis},
 \seealso{
 \code{\link[=pp_functional_covariate]{pp_functional_covariate()}} and \code{\link[=functional_scores]{functional_scores()}}.
 
-Other functional covariates: 
-\code{\link{as_pp_covariates}()},
-\code{\link{functional_coefficient}()},
-\code{\link{functional_scores}()},
-\code{\link{pp_functional_covariate}()},
-\code{\link{print.pp_functional_coefficient}()},
-\code{\link{print.pp_functional_covariate}()}
+Other functional covariates:
+\code{\link[=as_pp_covariates]{as_pp_covariates()}},
+\code{\link[=functional_coefficient]{functional_coefficient()}},
+\code{\link[=functional_scores]{functional_scores()}},
+\code{\link[=pp_functional_covariate]{pp_functional_covariate()}},
+\code{\link[=print.pp_functional_coefficient]{print.pp_functional_coefficient()}},
+\code{\link[=print.pp_functional_covariate]{print.pp_functional_covariate()}}
 }
 \concept{functional covariates}

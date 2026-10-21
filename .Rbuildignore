@@ -3,3 +3,4 @@
 ^\.Rhistory$
 ^doc$
 ^Meta$
+^cran-comments\.md$

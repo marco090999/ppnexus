@@ -165,11 +165,11 @@ plot(covariate)
 \code{\link[=pp_covariate]{pp_covariate()}}, \code{\link[=evaluate_covariate]{evaluate_covariate()}}, \code{\link[=extract_covariates]{extract_covariates()}}, and
 \code{\link[=pp_grid]{pp_grid()}}.
 
-Other covariate tools: 
-\code{\link{evaluate_covariate}()},
-\code{\link{extract_covariates}()},
-\code{\link{pp_covariate}()},
-\code{\link{pp_grid}()},
-\code{\link{print.pp_grid}()}
+Other covariate tools:
+\code{\link[=evaluate_covariate]{evaluate_covariate()}},
+\code{\link[=extract_covariates]{extract_covariates()}},
+\code{\link[=pp_covariate]{pp_covariate()}},
+\code{\link[=pp_grid]{pp_grid()}},
+\code{\link[=print.pp_grid]{print.pp_grid()}}
 }
 \concept{covariate tools}

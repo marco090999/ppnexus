@@ -81,8 +81,8 @@ summary(refitted)
 compatible simulations, and \code{\link[=envelope_pp]{envelope_pp()}} for automated simulation,
 refitting, and K-function comparison.
 
-Other fitted Poisson model operations: 
-\code{\link{predict_pp_fit}()},
-\code{\link{simulate_pp_fit}()}
+Other fitted Poisson model operations:
+\code{\link[=predict_pp_fit]{predict_pp_fit()}},
+\code{\link[=simulate_pp_fit]{simulate_pp_fit()}}
 }
 \concept{fitted Poisson model operations}

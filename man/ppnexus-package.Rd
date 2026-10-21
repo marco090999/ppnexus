@@ -23,6 +23,11 @@ Useful links:
 \author{
 \strong{Maintainer}: Marco Tarantino \email{marco.tarantino01@unipa.it} [copyright holder]
 
+Authors:
+\itemize{
+  \item Marco Tarantino \email{marco.tarantino01@unipa.it} [copyright holder]
+}
+
 Other contributors:
 \itemize{
   \item Marcello Chiodi (Author of the original Fortran ETAS triggering routine from etasFLP) [contributor, copyright holder]

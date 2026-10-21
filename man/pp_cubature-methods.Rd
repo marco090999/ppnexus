@@ -62,9 +62,9 @@ print(sc)
 \seealso{
 \code{\link[=pp_cubature]{pp_cubature()}} and \code{\link[=fit_pp]{fit_pp()}}.
 
-Other Poisson point-process models: 
-\code{\link{fit_pp}()},
-\code{\link{pp_cubature}()},
-\code{\link{print.pp_fit}()}
+Other Poisson point-process models:
+\code{\link[=fit_pp]{fit_pp()}},
+\code{\link[=pp_cubature]{pp_cubature()}},
+\code{\link[=print.pp_fit]{print.pp_fit()}}
 }
 \concept{Poisson point-process models}

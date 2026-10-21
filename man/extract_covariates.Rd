@@ -101,11 +101,11 @@ head(values)
 \code{\link[=evaluate_covariate]{evaluate_covariate()}} for single-covariate evaluation, \code{\link[=pp_covariate]{pp_covariate()}} for
 construction, and \code{\link[=pp_grid]{pp_grid()}} for regular targets.
 
-Other covariate tools: 
-\code{\link{evaluate_covariate}()},
-\code{\link{pp_covariate}()},
-\code{\link{pp_grid}()},
-\code{\link{print.pp_covariate}()},
-\code{\link{print.pp_grid}()}
+Other covariate tools:
+\code{\link[=evaluate_covariate]{evaluate_covariate()}},
+\code{\link[=pp_covariate]{pp_covariate()}},
+\code{\link[=pp_grid]{pp_grid()}},
+\code{\link[=print.pp_covariate]{print.pp_covariate()}},
+\code{\link[=print.pp_grid]{print.pp_grid()}}
 }
 \concept{covariate tools}
