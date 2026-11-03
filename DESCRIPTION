@@ -22,20 +22,20 @@ Authors@R: c(
         comment = "Co-author of etasFLP"
     )
     )
-Description: Tools for simulation, estimation, diagnostics, and exploratory
-    analysis of multidimensional spatial and spatio-temporal point processes
-    on hyperrectangular domains of any dimension. The package supports Poisson
-    and marked Poisson point processes whose log-intensity combines
+Description: Fits, simulates and checks spatial and spatio-temporal point
+    process models on hyperrectangular domains of any dimension. The
+    log-intensity of Poisson and marked Poisson processes can combine
     coordinates, scalar and functional covariates, categorical and continuous
-    marks, and smooth terms, fitted by a multidimensional extension of the
-    Berman-Turner device (Baddeley and Turner (2000)
-    <doi:10.1111/1467-842X.00128>); multidimensional inhomogeneous K-function
-    estimators; residual and global-envelope diagnostics; log-Gaussian Cox
-    processes (Moller et al. (1998) <doi:10.1111/1467-9469.00115>); and
-    epidemic-type aftershock sequence models (Ogata (1998)
-    <doi:10.1023/A:1003403601725>) with regression-based background
-    intensities. The ETAS triggering routine is adapted from the 'Fortran'
-    code of the 'etasFLP' package.
+    marks, and smooth terms, and is fitted by a multidimensional extension of
+    the Berman-Turner device (Baddeley and Turner (2000)
+    <doi:10.1111/1467-842X.00128>). The same intensity is the first-order
+    component of log-Gaussian Cox processes (Moller et al. (1998)
+    <doi:10.1111/1467-9469.00115>) and of epidemic-type aftershock sequence
+    models (Ogata (1998) <doi:10.1023/A:1003403601725>) with regression-based
+    background intensities. Multidimensional inhomogeneous K-functions,
+    residuals and global envelope tests are provided for model checking. The
+    ETAS triggering routine is adapted from the 'Fortran' code of the
+    'etasFLP' package.
 License: GPL (>= 2)
 URL: https://github.com/marco090999/ppnexus
 BugReports: https://github.com/marco090999/ppnexus/issues
@@ -56,4 +56,4 @@ Suggests:
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
-Config/roxygen2/version: 8.0.0
+Config/roxygen2/version: 8.1.1

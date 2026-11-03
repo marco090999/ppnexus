@@ -1,3 +1,13 @@
+## Resubmission
+
+This is a resubmission. In this version I have:
+
+* Rewritten the Description field.
+* Made all internal plotting functions that change graphical parameters
+  restore them with an immediate call to on.exit() (in R/ppdata2.R and
+  elsewhere). The package does not change the user's options() or working
+  directory.
+
 ## R CMD check results
 
 0 errors | 0 warnings | 1 note

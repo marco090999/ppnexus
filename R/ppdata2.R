@@ -2404,9 +2404,10 @@ pp_window <- function(
     stop("`spec` must describe a continuous mark.", call. = FALSE)
   }
 
-  graphics::par(
+  old_par <- graphics::par(
     mar = c(3.0, 0.3, 3.8, 4.8)
   )
+  on.exit(graphics::par(old_par), add = TRUE)
 
   graphics::plot.new()
 
@@ -2519,9 +2520,10 @@ pp_window <- function(
     stop("`spec` must describe a categorical mark.", call. = FALSE)
   }
 
-  graphics::par(
+  old_par <- graphics::par(
     mar = c(2.0, 0.2, 3.8, 0.2)
   )
+  on.exit(graphics::par(old_par), add = TRUE)
 
   graphics::plot.new()
 
@@ -2572,9 +2574,10 @@ pp_window <- function(
   xlim <- .pp_plot_limits(bounds[, 1])
   ylim <- .pp_plot_limits(bounds[, 2])
 
-  graphics::par(
+  old_par <- graphics::par(
     mar = c(5.5, 5.6, 4.0, 1.0)
   )
+  on.exit(graphics::par(old_par), add = TRUE)
 
   graphics::plot(
     NA_real_,
@@ -2667,9 +2670,10 @@ pp_window <- function(
   xlim <- .pp_plot_limits(bounds[, 1])
   times <- sort(x$coords[, time_axis])
 
-  graphics::par(
+  old_par <- graphics::par(
     mar = c(5.5, 5.8, 4.0, 1.0)
   )
+  on.exit(graphics::par(old_par), add = TRUE)
 
   graphics::plot(
     NA_real_,
@@ -2791,9 +2795,10 @@ pp_window <- function(
     colours <- NA
   }
 
-  graphics::par(
+  old_par <- graphics::par(
     mar = c(4.0, 3.8, 3.8, 2.0)
   )
+  on.exit(graphics::par(old_par), add = TRUE)
 
   plot3D::scatter3D(
     x = coords[, 1],
@@ -6315,9 +6320,10 @@ print.summary_pp_grid <- function(x, digits = 4, ...) {
     cex_axis = 1.2,
     cex_main = 1.35
 ) {
-  graphics::par(
+  old_par <- graphics::par(
     mar = c(3.0, 0.2, 4.0, 5.2)
   )
+  on.exit(graphics::par(old_par), add = TRUE)
 
   graphics::plot.new()
 
@@ -6627,9 +6633,10 @@ print.summary_pp_grid <- function(x, digits = 4, ...) {
   xlim <- .pp_cov_plot_limits(bounds[, 1])
   ylim <- .pp_cov_plot_limits(bounds[, 2])
 
-  graphics::par(
+  old_par <- graphics::par(
     mar = c(5.5, 5.7, 4.1, 1.0)
   )
+  on.exit(graphics::par(old_par), add = TRUE)
 
   graphics::plot(
     NA_real_,
@@ -6756,9 +6763,10 @@ print.summary_pp_grid <- function(x, digits = 4, ...) {
   xlim <- .pp_cov_plot_limits(bounds[, 1])
   ylim <- .pp_cov_plot_limits(bounds[, 2])
 
-  graphics::par(
+  old_par <- graphics::par(
     mar = c(5.5, 5.7, 4.1, 1.0)
   )
+  on.exit(graphics::par(old_par), add = TRUE)
 
   graphics::image(
     x = raster_data$x,
@@ -6885,9 +6893,10 @@ print.summary_pp_grid <- function(x, digits = 4, ...) {
     colours <- NA
   }
 
-  graphics::par(
+  old_par <- graphics::par(
     mar = c(4.0, 3.7, 4.0, 1.4)
   )
+  on.exit(graphics::par(old_par), add = TRUE)
 
   plot3D::scatter3D(
     x = coords[, 1],

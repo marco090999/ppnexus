@@ -125,8 +125,10 @@ export(simulate_lgcp_pp)
 export(simulate_pp)
 export(simulate_pp_fit)
 importFrom(graphics,plot)
-importFrom(stats,predict)
-importFrom(stats,setNames)
-importFrom(stats,simulate)
+importFrom(stats,
+  predict,
+  setNames,
+  simulate
+)
 importFrom(utils,tail)
 useDynLib(ppnexus, .registration = TRUE, .fixes = "C_")
